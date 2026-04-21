@@ -20,7 +20,24 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer())
       .get('/')
       .expect(200)
-      .expect('Hello World!');
+      .expect('Backend de gestion tecnologica FISEI');
+  });
+
+  it('/health (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/health')
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body).toEqual({
+          status: 'ok',
+          service: 'backend-gestion-tecnologica-fisei',
+          oracle: {
+            user: 'gestionfisei',
+            connectionString: 'localhost/XEPDB1',
+            thin: true,
+          },
+        });
+      });
   });
 
   afterEach(async () => {
