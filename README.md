@@ -29,42 +29,43 @@ El proyecto está dividido en dos módulos principales:
 
 ## 🧅 Backend (Arquitectura Onion)
 
-Estructura:
+### 📁 Estructura del proyecto
+
+```bash
 src/
 │
-├── domain/ # Núcleo del negocio
-│ ├── entities/
-│ ├── value-objects/
-│ ├── interfaces/
-│ └── enums/
+├── domain/                # Núcleo del negocio
+│   ├── entities/
+│   ├── value-objects/
+│   ├── interfaces/
+│   └── enums/
 │
-├── application/ # Casos de uso
-│ ├── use-cases/
-│ ├── dtos/
-│ └── services/
+├── application/           # Casos de uso
+│   ├── use-cases/
+│   ├── dtos/
+│   └── services/
 │
-├── infrastructure/ # Base de datos Oracle + repositorios
-│ ├── database/
-│ ├── repositories/
-│ ├── orm/
-│ ├── security/
-│ └── external-services/
+├── infrastructure/        # Base de datos Oracle + repositorios
+│   ├── database/
+│   ├── repositories/
+│   ├── orm/
+│   ├── security/
+│   └── external-services/
 │
-├── presentation/ # API REST (Controllers)
-│ ├── controllers/
-│ ├── modules/
-│ ├── guards/
-│ └── interceptors/
+├── presentation/          # API REST (Controllers)
+│   ├── controllers/
+│   ├── modules/
+│   ├── guards/
+│   └── interceptors/
 │
-├── shared/ # Utilidades comunes
-│ ├── exceptions/
-│ ├── utils/
-│ └── constants/
+├── shared/                # Utilidades comunes
+│   ├── exceptions/
+│   ├── utils/
+│   └── constants/
 │
 ├── app.module.ts
 └── main.ts
-
-
+```
 ---
 
 # 🛠️ Tecnologías utilizadas
