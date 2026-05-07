@@ -1,113 +1,173 @@
-# Gestión Tecnológica FISEI
+# 🧠 Sistema de Gestión de Inventario Tecnológico FISEI
 
-Proyecto académico: plantilla inicial para la gestión tecnológica de la facultad.
-
-**Descripción**: Repositorio monorepo con frontend (Next.js) y backend (NestJS). Contiene la estructura base, scripts de arranque y documentación para colaboradores.
-
-**Estado**: Plantilla inicial — lista para configurar base de datos y desarrollar funcionalidades.
-
-**Estructura del repositorio**
-
-```
-gestion_tecnologica_fisei/
-├── backend/      # API (NestJS)
-├── frontend/     # Web (Next.js)
-├── README.md
-└── .gitignore
-```
-
-**Tecnologías principales**
-
-- Frontend: Next.js (TypeScript, App Router, Tailwind opcional)
-- Backend: NestJS (TypeScript)
-- Control de versiones: Git
-
-**Requisitos**
-
-- Node.js (14+ recomendado)
-- npm o yarn
-- Git (para comandos listos en Git Bash)
-
-**Instalación rápida (Git Bash)**
-
-1) Clonar/repositorio nuevo y entrar en la carpeta
-
-```bash
-mkdir gestion_tecnologica_fisei
-cd gestion_tecnologica_fisei
-```
-
-2) Inicializar Git y crear archivos/estructuras
-
-```bash
-git init
-touch README.md
-mkdir backend frontend
-ls
-```
-
-3) Crear frontend (Next.js)
-
-```bash
-npx create-next-app@latest frontend
-```
-
-Seleccionar: TypeScript → YES, Tailwind → YES, App Router → YES
-
-4) Crear backend (NestJS)
-
-```bash
-npm install -g @nestjs/cli
-nest new backend
-```
-
-Elegir: `npm`
-
-5) Añadir `.gitignore`
-
-```bash
-touch .gitignore
-```
-
-Ejemplo de contenido:
-
-```
-node_modules/
-.next/
-dist/
-.env
-```
-
-6) Preparar y grabar commit con fecha personalizada (Git Bash)
-
-```bash
-git add .
-GIT_AUTHOR_DATE="2026-04-17T12:34:00" GIT_COMMITTER_DATE="2026-04-17T12:34:00" git commit -m "estructura inicial del proyecto gestion tecnologica fisei"
-```
-
-7) Subir a GitHub (después de crear el repo remoto)
-
-```bash
-git branch -M main
-git remote add origin https://github.com/TU-USUARIO/gestion_tecnologica_fisei.git
-git push -u origin main
-```
-
-**Contribuir**
-
-Lee [CONTRIBUTORS.md](CONTRIBUTORS.md) para normas de contribución y formato de aporte.
-
-**Buenas prácticas**
-
-- No falsificar fechas en commits para proyectos reales; solo para ejercicio académico.
-- Crear ramas por característica: `feature/<nombre>` y Pull Requests hacia `main`.
-
-**Siguientes pasos recomendados**
-
-- Diseñar el esquema de base de datos (Oracle) y añadir DDL en `database/`.
-- Implementar autenticación básica en `backend` (usuarios y login).
+Sistema web para la gestión de inventario, préstamos y mantenimiento de equipos tecnológicos de la FISEI, implementado con arquitectura Onion, backend en NestJS, frontend en Next.js y base de datos Oracle.
 
 ---
 
-Si quieres, puedo generar el script DDL de Oracle o empezar el backend con usuarios y login — dime cuál prefieres.
+## 🚀 Descripción del Proyecto
 
+Este sistema permite administrar equipos tecnológicos de laboratorios, aulas y oficinas dentro de la FISEI. Incluye funcionalidades como:
+
+- Registro de equipos tecnológicos
+- Gestión de usuarios y roles
+- Control de préstamos y devoluciones
+- Registro de mantenimientos preventivos y correctivos
+- Trazabilidad y auditoría de acciones
+- Notificaciones de préstamos y eventos
+
+---
+
+## 🧱 Arquitectura
+
+El proyecto está dividido en dos módulos principales:
+📁 proyecto/
+├── backend/ (NestJS + Oracle)
+├── frontend/ (Next.js)
+
+
+---
+
+## 🧅 Backend (Arquitectura Onion)
+
+Estructura:
+src/
+│
+├── domain/ # Núcleo del negocio
+│ ├── entities/
+│ ├── value-objects/
+│ ├── interfaces/
+│ └── enums/
+│
+├── application/ # Casos de uso
+│ ├── use-cases/
+│ ├── dtos/
+│ └── services/
+│
+├── infrastructure/ # Base de datos Oracle + repositorios
+│ ├── database/
+│ ├── repositories/
+│ ├── orm/
+│ ├── security/
+│ └── external-services/
+│
+├── presentation/ # API REST (Controllers)
+│ ├── controllers/
+│ ├── modules/
+│ ├── guards/
+│ └── interceptors/
+│
+├── shared/ # Utilidades comunes
+│ ├── exceptions/
+│ ├── utils/
+│ └── constants/
+│
+├── app.module.ts
+└── main.ts
+
+
+---
+
+# 🛠️ Tecnologías utilizadas
+
+## Backend
+- NestJS
+- TypeScript
+- Oracle Database
+- oracledb
+- JWT Authentication
+- Class Validator
+
+## Frontend
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+
+---
+
+# ⚙️ Variables de entorno (Backend)
+
+Crear archivo `.env` dentro de `/backend`:
+ PORT=3000
+
+ORACLE_USER=example
+ORACLE_PASSWORD=example
+
+ORACLE_CLIENT_LIB_DIR=C:\instantclient_23_0
+
+ORACLE_CONNECTION_STRING=localhost:1521/xe
+
+
+---
+
+# 📦 Instalación del Proyecto
+
+## 1. Clonar repositorio
+
+git clone https://github.com/tu-usuario/tu-repo.git
+cd proyecto
+
+
+## 2. Backend (NestJS)
+cd backend
+npm install
+npm run start:dev
+
+Servidor backend:
+http://localhost:3000
+
+## 3. Frontend (Next.js)
+cd frontendnpm installnpm run dev
+Frontend:
+http://localhost:3001
+
+## 4. Base de datos (Oracle)
+## Requisitos:
+Oracle XE instalado
+Oracle Instant Client configurado
+
+
+## Autenticación
+El sistema usa JWT:
+
+Login de usuarios
+
+## Roles:
+Administrador
+Docente
+Estudiante
+
+## Protección de endpoints
+
+## 📡 API Backend (Ejemplos)
+GET    /itemsPOST   /itemsGET    /usersPOST   /auth/loginGET    /loans
+
+## 🧪 Estado del Proyecto
+🚧 Proyecto en desarrollo
+## Módulos actuales:
+Inventario (Items)
+Usuarios
+Préstamos
+Mantenimientos
+Seguridad JWT
+Conexión Oracle
+
+
+## 📌 Funcionalidades principales
+
+
+Gestión de inventario tecnológico
+Control de préstamos de equipos
+Registro de mantenimientos
+Administración de usuarios
+Auditoría de acciones
+Reportes del sistema
+
+
+## 👨‍💻 Autor
+Proyecto académico: Andrea Vásquez
+Universidad Técnica de Ambato - FISEI
+Ingeniería en Software
+
+## 📄 Licencia
+Uso académico y educativo.
