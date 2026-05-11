@@ -259,6 +259,35 @@ export class PrestamosService {
         );
       }
 
+      if (Number(articuloResult[0].EST_ART) !== 1) {
+        throw new BadRequestException(`El articulo ${dto.idArt} esta inactivo`);
+      }
+
+      if (canPre <= 0) {
+        throw new BadRequestException('La cantidad debe ser mayor a 0');
+      }
+
+      const stock = Number(articuloResult[0].STOCK ?? 0);
+
+      const articuloPrestadoResult = await this.prestamoRepository.query(
+        `
+        SELECT NVL(SUM(dp.CAN_PRE), 0) AS PRESTADO
+        FROM DETALLE_PRESTAMO dp
+        JOIN PRESTAMO p ON dp.ID_PRES = p.ID_PRES
+        WHERE dp.ID_ART = :1
+        AND p.EST_PRES = 1
+        `,
+        [dto.idArt],
+      );
+
+      const prestado = Number(articuloPrestadoResult[0]?.PRESTADO ?? 0);
+
+      if (prestado + canPre > stock) {
+        throw new BadRequestException(
+          `No hay stock suficiente para el articulo ${dto.idArt}`,
+        );
+      }
+
       await this.prestamoRepository.query(
         `
         INSERT INTO DETALLE_PRESTAMO (
