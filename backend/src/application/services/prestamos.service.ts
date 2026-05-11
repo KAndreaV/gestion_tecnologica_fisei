@@ -10,6 +10,7 @@ import { CreateDetallePrestamoDto } from '../dtos/create-detalle-prestamo.dto';
 import { CreatePrestamoDto } from '../dtos/create-prestamo.dto';
 import { UpdatePrestamoDto } from '../dtos/update-prestamo.dto';
 import { PrestamoOrm } from '../../infrastructure/orm/entities/prestamo.entity';
+import { MovimientosService } from './movimientos.service';
 
 /**
  * Servicio de Prestamos
@@ -22,6 +23,7 @@ export class PrestamosService {
   constructor(
     @InjectRepository(PrestamoOrm)
     private readonly prestamoRepository: Repository<PrestamoOrm>,
+    private readonly movimientosService: MovimientosService,
   ) {
     this.logger.log('PrestamosService initialized with Database connection');
   }
@@ -144,7 +146,21 @@ export class PrestamosService {
             idEst: createDto.idEst,
           });
 
-          return await transactionalEntityManager.save(PrestamoOrm, prestamo);
+          const prestamoCreado = await transactionalEntityManager.save(
+            PrestamoOrm,
+            prestamo,
+          );
+
+          await this.movimientosService.create(
+            {
+              idPres: nextId,
+              tipoMov: 'PRESTAMO',
+              descripcion: `Prestamo creado. ID_PRES: ${nextId}`,
+            },
+            transactionalEntityManager,
+          );
+
+          return prestamoCreado;
         },
       );
     } catch (error) {
@@ -341,6 +357,12 @@ export class PrestamosService {
         [prestamoId, dto.idArt, canPre],
       );
 
+      await this.movimientosService.create({
+        idPres: prestamoId,
+        tipoMov: 'DETALLE_PRESTAMO',
+        descripcion: `Detalle de prestamo agregado. ID_ART: ${dto.idArt}, CAN_PRE: ${canPre}`,
+      });
+
       return {
         ID_PRES: prestamoId,
         ID_ART: dto.idArt,
@@ -460,6 +482,12 @@ export class PrestamosService {
         [nuevaCantidad, prestamoId, articuloId],
       );
 
+      await this.movimientosService.create({
+        idPres: prestamoId,
+        tipoMov: 'ACTUALIZACION_DETALLE',
+        descripcion: `Detalle de prestamo actualizado. ID_ART: ${articuloId}, CAN_PRE_ANTERIOR: ${cantidadActual}, CAN_PRE_NUEVA: ${nuevaCantidad}`,
+      });
+
       return {
         ID_PRES: prestamoId,
         ID_ART: articuloId,
@@ -492,6 +520,17 @@ export class PrestamosService {
     try {
       await this.findOne(prestamoId);
 
+      const detalleResult = await this.prestamoRepository.query(
+        'SELECT * FROM DETALLE_PRESTAMO WHERE ID_PRES = :1 AND ID_ART = :2',
+        [prestamoId, articuloId],
+      );
+
+      if (detalleResult.length === 0) {
+        throw new NotFoundException(
+          `Detalle de prestamo ${prestamoId} con articulo ${articuloId} no encontrado`,
+        );
+      }
+
       const result = await this.prestamoRepository.query(
         `
         DELETE FROM DETALLE_PRESTAMO
@@ -509,6 +548,12 @@ export class PrestamosService {
           `Detalle de prestamo ${prestamoId} con articulo ${articuloId} no encontrado`,
         );
       }
+
+      await this.movimientosService.create({
+        idPres: prestamoId,
+        tipoMov: 'ELIMINACION_DETALLE',
+        descripcion: `Detalle de prestamo eliminado. ID_ART: ${articuloId}, CAN_PRE: ${detalleResult[0].CAN_PRE}`,
+      });
 
       return {
         message: `Detalle de prestamo ${prestamoId} con articulo ${articuloId} eliminado correctamente`,

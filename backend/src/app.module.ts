@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { TestController } from './presentation/test/test.controller';
 import { ArticulosModule } from './presentation/modules/articulos.module';
 import { PrestamosModule } from './presentation/modules/prestamos.module';
+import { MovimientosModule } from './presentation/modules/movimientos.module';
 import { DatabaseModule } from './infrastructure/database/database.module';
 
 @Module({
@@ -15,6 +16,7 @@ import { DatabaseModule } from './infrastructure/database/database.module';
     }),
     DatabaseModule,
     ArticulosModule,
+    MovimientosModule,
     PrestamosModule,
   ],
   controllers: [AppController, TestController],
