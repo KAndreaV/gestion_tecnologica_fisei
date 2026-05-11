@@ -2,7 +2,26 @@
 
 SET DEFINE OFF;
 
+SET LINESIZE 200
+SET PAGESIZE 100
 
+COLUMN ID_ART FORMAT 999
+COLUMN NOM_ART FORMAT A30
+COLUMN SER_ART FORMAT A15
+COLUMN MAR_ART FORMAT A15
+COLUMN MOD_ART FORMAT A20
+COLUMN CAN_ART FORMAT 999
+COLUMN VAL_ART FORMAT 99999.99
+
+SELECT 
+    ID_ART,
+    NOM_ART,
+    SER_ART,
+    MAR_ART,
+    MOD_ART,
+    CAN_ART,
+    VAL_ART
+FROM ARTICULO;
 -- ---------------------------------------------------------
 -- Usuario de esquema y permisos
 -- ---------------------------------------------------------
@@ -24,6 +43,7 @@ GRANT CREATE VIEW TO gestionfisei;
 GRANT CREATE TRIGGER TO gestionfisei;
 GRANT CREATE PROCEDURE TO gestionfisei;
 GRANT CREATE SYNONYM TO gestionfisei;
+
 -- ---------------------------------------------------------
 -- Catálogos base
 -- ---------------------------------------------------------
@@ -258,3 +278,8 @@ CREATE TABLE auditoria (
   CONSTRAINT ck_auditoria_accion CHECK (nom_accion IN ('INSERT', 'UPDATE', 'DELETE'))
 );
 
+CREATE SEQUENCE SEQ_ARTICULO
+START WITH 4
+INCREMENT BY 1
+NOCACHE
+NOCYCLE;
