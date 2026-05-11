@@ -10,6 +10,7 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
+import { CreateDetallePrestamoDto } from '../../application/dtos/create-detalle-prestamo.dto';
 import { CreatePrestamoDto } from '../../application/dtos/create-prestamo.dto';
 import { UpdatePrestamoDto } from '../../application/dtos/update-prestamo.dto';
 import { PrestamosService } from '../../application/services/prestamos.service';
@@ -63,6 +64,39 @@ export class PrestamosController {
   }
 
   // =========================================
+  // POST DETALLE
+  // =========================================
+  @Post(':id/detalles')
+  @HttpCode(HttpStatus.CREATED)
+  async addDetalle(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() createDetalleDto: CreateDetallePrestamoDto,
+  ) {
+    const data = await this.prestamosService.addDetalle(id, createDetalleDto);
+
+    return {
+      success: true,
+      message: 'Detalle de prestamo agregado correctamente',
+      data,
+    };
+  }
+
+  // =========================================
+  // GET DETALLES
+  // =========================================
+  @Get(':id/detalles')
+  @HttpCode(HttpStatus.OK)
+  async getDetalles(@Param('id', ParseIntPipe) id: number) {
+    const data = await this.prestamosService.getDetalles(id);
+
+    return {
+      success: true,
+      data,
+      total: data.length,
+    };
+  }
+
+  // =========================================
   // PUT
   // =========================================
   @Put(':id')
@@ -81,6 +115,29 @@ export class PrestamosController {
   }
 
   // =========================================
+  // PUT DETALLE
+  // =========================================
+  @Put(':id/detalles/:idArt')
+  @HttpCode(HttpStatus.OK)
+  async updateDetalle(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('idArt', ParseIntPipe) idArt: number,
+    @Body() body: { canPre: number },
+  ) {
+    const data = await this.prestamosService.updateDetalle(
+      id,
+      idArt,
+      body.canPre,
+    );
+
+    return {
+      success: true,
+      message: 'Detalle de prestamo actualizado correctamente',
+      data,
+    };
+  }
+
+  // =========================================
   // DELETE
   // =========================================
   @Delete(':id')
@@ -91,6 +148,23 @@ export class PrestamosController {
     return {
       success: true,
       message: 'Prestamo eliminado correctamente',
+    };
+  }
+
+  // =========================================
+  // DELETE DETALLE
+  // =========================================
+  @Delete(':id/detalles/:idArt')
+  @HttpCode(HttpStatus.OK)
+  async removeDetalle(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('idArt', ParseIntPipe) idArt: number,
+  ) {
+    await this.prestamosService.removeDetalle(id, idArt);
+
+    return {
+      success: true,
+      message: 'Detalle de prestamo eliminado correctamente',
     };
   }
 }

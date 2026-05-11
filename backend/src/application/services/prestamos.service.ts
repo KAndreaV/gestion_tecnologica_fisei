@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CreateDetallePrestamoDto } from '../dtos/create-detalle-prestamo.dto';
 import { CreatePrestamoDto } from '../dtos/create-prestamo.dto';
 import { UpdatePrestamoDto } from '../dtos/update-prestamo.dto';
 import { PrestamoOrm } from '../../infrastructure/orm/entities/prestamo.entity';
@@ -218,6 +219,205 @@ export class PrestamosService {
       this.logger.error(error);
 
       throw new BadRequestException('Error al eliminar prestamo');
+    }
+  }
+
+  /**
+   * Agregar un articulo al detalle de un prestamo
+   * @param prestamoId ID del prestamo
+   * @param dto Datos del detalle
+   * @returns Detalle creado
+   */
+  async addDetalle(
+    prestamoId: number,
+    dto: CreateDetallePrestamoDto,
+  ): Promise<unknown> {
+    try {
+      await this.findOne(prestamoId);
+
+      const canPre = dto.canPre ?? 1;
+
+      const articuloResult = await this.prestamoRepository.query(
+        'SELECT * FROM ARTICULO WHERE ID_ART = :1',
+        [dto.idArt],
+      );
+
+      if (articuloResult.length === 0) {
+        throw new NotFoundException(
+          `Articulo con ID ${dto.idArt} no encontrado`,
+        );
+      }
+
+      const detalleResult = await this.prestamoRepository.query(
+        'SELECT * FROM DETALLE_PRESTAMO WHERE ID_PRES = :1 AND ID_ART = :2',
+        [prestamoId, dto.idArt],
+      );
+
+      if (detalleResult.length > 0) {
+        throw new BadRequestException(
+          `El articulo ${dto.idArt} ya existe en el prestamo ${prestamoId}`,
+        );
+      }
+
+      await this.prestamoRepository.query(
+        `
+        INSERT INTO DETALLE_PRESTAMO (
+          ID_PRES,
+          ID_ART,
+          CAN_PRE
+        ) VALUES (
+          :1,
+          :2,
+          :3
+        )
+        `,
+        [prestamoId, dto.idArt, canPre],
+      );
+
+      return {
+        ID_PRES: prestamoId,
+        ID_ART: dto.idArt,
+        CAN_PRE: canPre,
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+
+      this.logger.error(error);
+
+      throw new BadRequestException('Error al agregar detalle al prestamo');
+    }
+  }
+
+  /**
+   * Obtener los detalles de un prestamo
+   * @param prestamoId ID del prestamo
+   * @returns Lista de detalles
+   */
+  async getDetalles(prestamoId: number): Promise<unknown[]> {
+    try {
+      await this.findOne(prestamoId);
+
+      return await this.prestamoRepository.query(
+        'SELECT * FROM DETALLE_PRESTAMO WHERE ID_PRES = :1',
+        [prestamoId],
+      );
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      this.logger.error(error);
+
+      throw new BadRequestException('Error al obtener detalles del prestamo');
+    }
+  }
+
+  /**
+   * Actualizar la cantidad de un detalle de prestamo
+   * @param prestamoId ID del prestamo
+   * @param articuloId ID del articulo
+   * @param cantidad Nueva cantidad
+   * @returns Detalle actualizado
+   */
+  async updateDetalle(
+    prestamoId: number,
+    articuloId: number,
+    cantidad: number,
+  ): Promise<unknown> {
+    try {
+      await this.findOne(prestamoId);
+
+      const detalleResult = await this.prestamoRepository.query(
+        'SELECT * FROM DETALLE_PRESTAMO WHERE ID_PRES = :1 AND ID_ART = :2',
+        [prestamoId, articuloId],
+      );
+
+      if (detalleResult.length === 0) {
+        throw new NotFoundException(
+          `Detalle de prestamo ${prestamoId} con articulo ${articuloId} no encontrado`,
+        );
+      }
+
+      if (cantidad <= 0) {
+        throw new BadRequestException('La cantidad debe ser mayor a 0');
+      }
+
+      await this.prestamoRepository.query(
+        `
+        UPDATE DETALLE_PRESTAMO
+        SET CAN_PRE = :1
+        WHERE ID_PRES = :2
+          AND ID_ART = :3
+        `,
+        [cantidad, prestamoId, articuloId],
+      );
+
+      return {
+        ID_PRES: prestamoId,
+        ID_ART: articuloId,
+        CAN_PRE: cantidad,
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+
+      this.logger.error(error);
+
+      throw new BadRequestException('Error al actualizar detalle del prestamo');
+    }
+  }
+
+  /**
+   * Eliminar un articulo especifico del detalle de un prestamo
+   * @param prestamoId ID del prestamo
+   * @param articuloId ID del articulo
+   * @returns Mensaje de confirmacion
+   */
+  async removeDetalle(
+    prestamoId: number,
+    articuloId: number,
+  ): Promise<{ message: string }> {
+    try {
+      await this.findOne(prestamoId);
+
+      const result = await this.prestamoRepository.query(
+        `
+        DELETE FROM DETALLE_PRESTAMO
+        WHERE ID_PRES = :1
+          AND ID_ART = :2
+        `,
+        [prestamoId, articuloId],
+      );
+
+      const affectedRows =
+        typeof result === 'number' ? result : result?.rowsAffected;
+
+      if (affectedRows === 0) {
+        throw new NotFoundException(
+          `Detalle de prestamo ${prestamoId} con articulo ${articuloId} no encontrado`,
+        );
+      }
+
+      return {
+        message: `Detalle de prestamo ${prestamoId} con articulo ${articuloId} eliminado correctamente`,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      this.logger.error(error);
+
+      throw new BadRequestException('Error al eliminar detalle del prestamo');
     }
   }
 }
