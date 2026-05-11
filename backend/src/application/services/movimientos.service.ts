@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { CreateMovimientoDto } from '../dtos/create-movimiento.dto';
 import { MovimientoOrm } from '../../infrastructure/orm/entities/movimiento.entity';
+import { AuditoriaService } from './auditoria.service';
 
 /**
  * Servicio de Movimientos
@@ -20,6 +21,7 @@ export class MovimientosService {
   constructor(
     @InjectRepository(MovimientoOrm)
     private readonly movimientoRepository: Repository<MovimientoOrm>,
+    private readonly auditoriaService: AuditoriaService,
   ) {
     this.logger.log('MovimientosService initialized with Database connection');
   }
@@ -115,6 +117,15 @@ export class MovimientosService {
       )
       `,
       [nextId, dto.idPres, dto.tipoMov, dto.descripcion ?? null],
+    );
+
+    await this.auditoriaService.create(
+      {
+        tablaAfectada: 'MOVIMIENTO',
+        accion: 'INSERT',
+        descripcion: `Movimiento creado. ID_MOV: ${nextId}, ID_PRES: ${dto.idPres}, TIPO_MOV: ${dto.tipoMov}`,
+      },
+      manager,
     );
 
     return {

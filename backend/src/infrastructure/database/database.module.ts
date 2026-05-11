@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ArticuloOrm } from '../orm/entities/articulo.entity';
 import { PrestamoOrm } from '../orm/entities/prestamo.entity';
 import { MovimientoOrm } from '../orm/entities/movimiento.entity';
+import { AuditoriaOrm } from '../orm/entities/auditoria.entity';
 
 const logger = new Logger('DatabaseModule');
 
@@ -27,7 +28,7 @@ const logger = new Logger('DatabaseModule');
           connectString,
           username: configService.get<string>('ORACLE_USER') || 'gestionfisei',
           password: configService.get<string>('ORACLE_PASSWORD') || 'gestionfisei',
-          entities: [ArticuloOrm, PrestamoOrm, MovimientoOrm],
+          entities: [ArticuloOrm, PrestamoOrm, MovimientoOrm, AuditoriaOrm],
           synchronize: false,
           logging: false,
           retryAttempts: 3,

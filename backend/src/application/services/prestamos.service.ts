@@ -11,6 +11,7 @@ import { CreatePrestamoDto } from '../dtos/create-prestamo.dto';
 import { UpdatePrestamoDto } from '../dtos/update-prestamo.dto';
 import { PrestamoOrm } from '../../infrastructure/orm/entities/prestamo.entity';
 import { MovimientosService } from './movimientos.service';
+import { AuditoriaService } from './auditoria.service';
 
 /**
  * Servicio de Prestamos
@@ -24,6 +25,7 @@ export class PrestamosService {
     @InjectRepository(PrestamoOrm)
     private readonly prestamoRepository: Repository<PrestamoOrm>,
     private readonly movimientosService: MovimientosService,
+    private readonly auditoriaService: AuditoriaService,
   ) {
     this.logger.log('PrestamosService initialized with Database connection');
   }
@@ -160,6 +162,15 @@ export class PrestamosService {
             transactionalEntityManager,
           );
 
+          await this.auditoriaService.create(
+            {
+              tablaAfectada: 'PRESTAMO',
+              accion: 'INSERT',
+              descripcion: `Prestamo creado. ID_PRES: ${nextId}`,
+            },
+            transactionalEntityManager,
+          );
+
           return prestamoCreado;
         },
       );
@@ -236,6 +247,12 @@ export class PrestamosService {
         ],
       );
 
+      await this.auditoriaService.create({
+        tablaAfectada: 'PRESTAMO',
+        accion: 'UPDATE',
+        descripcion: `Prestamo actualizado. ID_PRES: ${id}`,
+      });
+
       return await this.findOne(id);
     } catch (error) {
       if (
@@ -265,11 +282,20 @@ export class PrestamosService {
         [id],
       );
 
+      await this.auditoriaService.create({
+        tablaAfectada: 'PRESTAMO',
+        accion: 'DELETE',
+        descripcion: `Prestamo eliminado logicamente. ID_PRES: ${id}`,
+      });
+
       return {
         message: `Prestamo ${id} eliminado correctamente`,
       };
     } catch (error) {
-      if (error instanceof NotFoundException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
 
@@ -361,6 +387,12 @@ export class PrestamosService {
         idPres: prestamoId,
         tipoMov: 'DETALLE_PRESTAMO',
         descripcion: `Detalle de prestamo agregado. ID_ART: ${dto.idArt}, CAN_PRE: ${canPre}`,
+      });
+
+      await this.auditoriaService.create({
+        tablaAfectada: 'DETALLE_PRESTAMO',
+        accion: 'INSERT',
+        descripcion: `Detalle de prestamo agregado. ID_PRES: ${prestamoId}, ID_ART: ${dto.idArt}, CAN_PRE: ${canPre}`,
       });
 
       return {
@@ -488,6 +520,12 @@ export class PrestamosService {
         descripcion: `Detalle de prestamo actualizado. ID_ART: ${articuloId}, CAN_PRE_ANTERIOR: ${cantidadActual}, CAN_PRE_NUEVA: ${nuevaCantidad}`,
       });
 
+      await this.auditoriaService.create({
+        tablaAfectada: 'DETALLE_PRESTAMO',
+        accion: 'UPDATE',
+        descripcion: `Detalle de prestamo actualizado. ID_PRES: ${prestamoId}, ID_ART: ${articuloId}, CAN_PRE_ANTERIOR: ${cantidadActual}, CAN_PRE_NUEVA: ${nuevaCantidad}`,
+      });
+
       return {
         ID_PRES: prestamoId,
         ID_ART: articuloId,
@@ -555,11 +593,20 @@ export class PrestamosService {
         descripcion: `Detalle de prestamo eliminado. ID_ART: ${articuloId}, CAN_PRE: ${detalleResult[0].CAN_PRE}`,
       });
 
+      await this.auditoriaService.create({
+        tablaAfectada: 'DETALLE_PRESTAMO',
+        accion: 'DELETE',
+        descripcion: `Detalle de prestamo eliminado. ID_PRES: ${prestamoId}, ID_ART: ${articuloId}, CAN_PRE: ${detalleResult[0].CAN_PRE}`,
+      });
+
       return {
         message: `Detalle de prestamo ${prestamoId} con articulo ${articuloId} eliminado correctamente`,
       };
     } catch (error) {
-      if (error instanceof NotFoundException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
 
