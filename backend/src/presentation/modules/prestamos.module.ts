@@ -5,6 +5,7 @@ import { PrestamoOrm } from '../../infrastructure/orm/entities/prestamo.entity';
 import { PrestamosController } from '../controllers/prestamos.controller';
 import { MovimientosModule } from './movimientos.module';
 import { AuditoriaModule } from './auditoria.module';
+import { NotificacionesModule } from './notificaciones.module';
 
 /**
  * Modulo de Prestamos
@@ -12,7 +13,12 @@ import { AuditoriaModule } from './auditoria.module';
  * Importa TypeOrmModule para acceso a BD
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([PrestamoOrm]), MovimientosModule, AuditoriaModule],
+  imports: [
+    TypeOrmModule.forFeature([PrestamoOrm]),
+    MovimientosModule,
+    AuditoriaModule,
+    NotificacionesModule,
+  ],
   providers: [PrestamosService],
   controllers: [PrestamosController],
   exports: [PrestamosService],

@@ -12,6 +12,7 @@ import { UpdatePrestamoDto } from '../dtos/update-prestamo.dto';
 import { PrestamoOrm } from '../../infrastructure/orm/entities/prestamo.entity';
 import { MovimientosService } from './movimientos.service';
 import { AuditoriaService } from './auditoria.service';
+import { NotificacionesService } from './notificaciones.service';
 
 /**
  * Servicio de Prestamos
@@ -26,6 +27,7 @@ export class PrestamosService {
     private readonly prestamoRepository: Repository<PrestamoOrm>,
     private readonly movimientosService: MovimientosService,
     private readonly auditoriaService: AuditoriaService,
+    private readonly notificacionesService: NotificacionesService,
   ) {
     this.logger.log('PrestamosService initialized with Database connection');
   }
@@ -171,6 +173,15 @@ export class PrestamosService {
             transactionalEntityManager,
           );
 
+          await this.notificacionesService.create(
+            {
+              idUsr: createDto.idUsr,
+              mensaje: `Prestamo creado correctamente. ID_PRES: ${nextId}`,
+              tipoNot: 'PRESTAMO',
+            },
+            transactionalEntityManager,
+          );
+
           return prestamoCreado;
         },
       );
@@ -253,6 +264,12 @@ export class PrestamosService {
         descripcion: `Prestamo actualizado. ID_PRES: ${id}`,
       });
 
+      await this.notificacionesService.create({
+        idUsr,
+        mensaje: `Prestamo actualizado correctamente. ID_PRES: ${id}`,
+        tipoNot: 'PRESTAMO',
+      });
+
       return await this.findOne(id);
     } catch (error) {
       if (
@@ -275,7 +292,7 @@ export class PrestamosService {
    */
   async delete(id: number): Promise<{ message: string }> {
     try {
-      await this.findOne(id);
+      const prestamo = await this.findOne(id);
 
       await this.prestamoRepository.query(
         'UPDATE PRESTAMO SET EST_PRES = 0 WHERE ID_PRES = :1',
@@ -286,6 +303,12 @@ export class PrestamosService {
         tablaAfectada: 'PRESTAMO',
         accion: 'DELETE',
         descripcion: `Prestamo eliminado logicamente. ID_PRES: ${id}`,
+      });
+
+      await this.notificacionesService.create({
+        idUsr: (prestamo as any).ID_USR ?? prestamo.idUsr,
+        mensaje: `Prestamo eliminado logicamente. ID_PRES: ${id}`,
+        tipoNot: 'PRESTAMO',
       });
 
       return {

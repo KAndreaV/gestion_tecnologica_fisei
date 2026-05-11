@@ -9,6 +9,7 @@ import { EntityManager, Repository } from 'typeorm';
 import { CreateMovimientoDto } from '../dtos/create-movimiento.dto';
 import { MovimientoOrm } from '../../infrastructure/orm/entities/movimiento.entity';
 import { AuditoriaService } from './auditoria.service';
+import { NotificacionesService } from './notificaciones.service';
 
 /**
  * Servicio de Movimientos
@@ -22,6 +23,7 @@ export class MovimientosService {
     @InjectRepository(MovimientoOrm)
     private readonly movimientoRepository: Repository<MovimientoOrm>,
     private readonly auditoriaService: AuditoriaService,
+    private readonly notificacionesService: NotificacionesService,
   ) {
     this.logger.log('MovimientosService initialized with Database connection');
   }
@@ -124,6 +126,14 @@ export class MovimientosService {
         tablaAfectada: 'MOVIMIENTO',
         accion: 'INSERT',
         descripcion: `Movimiento creado. ID_MOV: ${nextId}, ID_PRES: ${dto.idPres}, TIPO_MOV: ${dto.tipoMov}`,
+      },
+      manager,
+    );
+
+    await this.notificacionesService.create(
+      {
+        mensaje: `Movimiento registrado. ID_MOV: ${nextId}, ID_PRES: ${dto.idPres}, TIPO_MOV: ${dto.tipoMov}`,
+        tipoNot: 'MOVIMIENTO',
       },
       manager,
     );
