@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { CreateDetallePrestamoDto } from '../dtos/create-detalle-prestamo.dto';
 import { CreatePrestamoDto } from '../dtos/create-prestamo.dto';
 import { UpdatePrestamoDto } from '../dtos/update-prestamo.dto';
@@ -60,6 +60,137 @@ export class PrestamosService {
   private validateCantidad(cantidad: number): void {
     if (!Number.isFinite(cantidad) || cantidad <= 0) {
       throw new BadRequestException('La cantidad debe ser mayor a 0');
+    }
+  }
+
+  private async findPrestamoForUpdate(
+    manager: EntityManager,
+    id: number,
+  ): Promise<any> {
+    const result = await manager.query(
+      'SELECT * FROM PRESTAMO WHERE ID_PRES = :1 FOR UPDATE',
+      [id],
+    );
+
+    if (result.length === 0) {
+      throw new NotFoundException(`Prestamo con ID ${id} no encontrado`);
+    }
+
+    return result[0];
+  }
+
+  private validatePrestamoActivo(prestamo: any): void {
+    if (Number(prestamo.EST_PRES) !== 1) {
+      throw new BadRequestException(
+        `Prestamo ${prestamo.ID_PRES} no esta activo`,
+      );
+    }
+  }
+
+  private async findArticuloForUpdate(
+    manager: EntityManager,
+    articuloId: number,
+    validateActivo = true,
+  ): Promise<any> {
+    const result = await manager.query(
+      'SELECT * FROM ARTICULO WHERE ID_ART = :1 FOR UPDATE',
+      [articuloId],
+    );
+
+    if (result.length === 0) {
+      throw new NotFoundException(`Articulo con ID ${articuloId} no encontrado`);
+    }
+
+    if (validateActivo && Number(result[0].EST_ART) !== 1) {
+      throw new BadRequestException(`El articulo ${articuloId} esta inactivo`);
+    }
+
+    return result[0];
+  }
+
+  private async findDetalleForUpdate(
+    manager: EntityManager,
+    prestamoId: number,
+    articuloId: number,
+  ): Promise<any> {
+    const result = await manager.query(
+      'SELECT * FROM DETALLE_PRESTAMO WHERE ID_PRES = :1 AND ID_ART = :2 FOR UPDATE',
+      [prestamoId, articuloId],
+    );
+
+    if (result.length === 0) {
+      throw new NotFoundException(
+        `Detalle de prestamo ${prestamoId} con articulo ${articuloId} no encontrado`,
+      );
+    }
+
+    return result[0];
+  }
+
+  private async descontarStock(
+    manager: EntityManager,
+    articulo: any,
+    cantidad: number,
+  ): Promise<void> {
+    const stock = Number(articulo.CAN_ART ?? 0);
+
+    if (stock < cantidad) {
+      throw new BadRequestException(
+        `No hay stock suficiente para el articulo ${articulo.ID_ART}`,
+      );
+    }
+
+    await manager.query(
+      `
+      UPDATE ARTICULO
+      SET CAN_ART = CAN_ART - :1,
+          FEC_ACTUALIZACION = SYSDATE
+      WHERE ID_ART = :2
+        AND CAN_ART >= :1
+      `,
+      [cantidad, articulo.ID_ART],
+    );
+  }
+
+  private async devolverStock(
+    manager: EntityManager,
+    articuloId: number,
+    cantidad: number,
+  ): Promise<void> {
+    await manager.query(
+      `
+      UPDATE ARTICULO
+      SET CAN_ART = CAN_ART + :1,
+          FEC_ACTUALIZACION = SYSDATE
+      WHERE ID_ART = :2
+      `,
+      [cantidad, articuloId],
+    );
+  }
+
+  private async ajustarStockDetallesPrestamo(
+    manager: EntityManager,
+    prestamoId: number,
+    operacion: 'DESCONTAR' | 'DEVOLVER',
+  ): Promise<void> {
+    const detalles = await manager.query(
+      'SELECT * FROM DETALLE_PRESTAMO WHERE ID_PRES = :1 FOR UPDATE',
+      [prestamoId],
+    );
+
+    for (const detalle of detalles) {
+      const articulo = await this.findArticuloForUpdate(
+        manager,
+        detalle.ID_ART,
+        operacion === 'DESCONTAR',
+      );
+      const cantidad = Number(detalle.CAN_PRE ?? 0);
+
+      if (operacion === 'DESCONTAR') {
+        await this.descontarStock(manager, articulo, cantidad);
+      } else {
+        await this.devolverStock(manager, detalle.ID_ART, cantidad);
+      }
     }
   }
 
@@ -207,70 +338,103 @@ export class PrestamosService {
    */
   async update(id: number, updateDto: UpdatePrestamoDto): Promise<PrestamoOrm> {
     try {
-      const currentResult = await this.prestamoRepository.query(
-        'SELECT * FROM PRESTAMO WHERE ID_PRES = :1',
-        [id],
+      return await this.prestamoRepository.manager.transaction(
+        async (transactionalEntityManager) => {
+          const current = await this.findPrestamoForUpdate(
+            transactionalEntityManager,
+            id,
+          );
+
+          const fecPres = updateDto.fecPres
+            ? new Date(updateDto.fecPres)
+            : current.FEC_PRES;
+          const fecEntrega = updateDto.fecEntrega
+            ? new Date(updateDto.fecEntrega)
+            : current.FEC_ENTREGA ?? null;
+          const fecDevolucion = updateDto.fecDevolucion
+            ? new Date(updateDto.fecDevolucion)
+            : current.FEC_DEVOLUCION ?? null;
+          const obsPres = updateDto.obsPres ?? current.OBS_PRES ?? null;
+          const estPres = updateDto.estPres ?? current.EST_PRES;
+          const idUsr = updateDto.idUsr ?? current.ID_USR;
+          const idEst = updateDto.idEst ?? current.ID_EST;
+
+          this.validateFechas(fecPres, fecDevolucion);
+
+          if (![0, 1].includes(Number(estPres))) {
+            throw new BadRequestException('El estado del prestamo no es valido');
+          }
+
+          const currentEstPres = Number(current.EST_PRES);
+          const newEstPres = Number(estPres);
+
+          if (currentEstPres !== newEstPres) {
+            if (currentEstPres === 1 && newEstPres === 0) {
+              await this.ajustarStockDetallesPrestamo(
+                transactionalEntityManager,
+                id,
+                'DEVOLVER',
+              );
+            } else if (currentEstPres === 0 && newEstPres === 1) {
+              await this.ajustarStockDetallesPrestamo(
+                transactionalEntityManager,
+                id,
+                'DESCONTAR',
+              );
+            }
+          }
+
+          await transactionalEntityManager.query(
+            `
+            UPDATE PRESTAMO
+            SET
+              FEC_PRES = :1,
+              FEC_ENTREGA = :2,
+              FEC_DEVOLUCION = :3,
+              OBS_PRES = :4,
+              EST_PRES = :5,
+              ID_USR = :6,
+              ID_EST = :7
+            WHERE ID_PRES = :8
+            `,
+            [
+              fecPres,
+              fecEntrega,
+              fecDevolucion,
+              obsPres,
+              estPres,
+              idUsr,
+              idEst,
+              id,
+            ],
+          );
+
+          await this.auditoriaService.create(
+            {
+              tablaAfectada: 'PRESTAMO',
+              accion: 'UPDATE',
+              descripcion: `Prestamo actualizado. ID_PRES: ${id}`,
+            },
+            transactionalEntityManager,
+          );
+
+          await this.notificacionesService.create(
+            {
+              idUsr,
+              mensaje: `Prestamo actualizado correctamente. ID_PRES: ${id}`,
+              tipoNot: 'PRESTAMO',
+            },
+            transactionalEntityManager,
+          );
+
+          const updated = await transactionalEntityManager.query(
+            'SELECT * FROM PRESTAMO WHERE ID_PRES = :1',
+            [id],
+          );
+
+          return updated[0];
+        },
       );
-
-      if (currentResult.length === 0) {
-        throw new NotFoundException(`Prestamo con ID ${id} no encontrado`);
-      }
-
-      const current = currentResult[0];
-      const fecPres = updateDto.fecPres
-        ? new Date(updateDto.fecPres)
-        : current.FEC_PRES;
-      const fecEntrega = updateDto.fecEntrega
-        ? new Date(updateDto.fecEntrega)
-        : current.FEC_ENTREGA ?? null;
-      const fecDevolucion = updateDto.fecDevolucion
-        ? new Date(updateDto.fecDevolucion)
-        : current.FEC_DEVOLUCION ?? null;
-      const obsPres = updateDto.obsPres ?? current.OBS_PRES ?? null;
-      const estPres = updateDto.estPres ?? current.EST_PRES;
-      const idUsr = updateDto.idUsr ?? current.ID_USR;
-      const idEst = updateDto.idEst ?? current.ID_EST;
-
-      this.validateFechas(fecPres, fecDevolucion);
-
-      await this.prestamoRepository.query(
-        `
-        UPDATE PRESTAMO
-        SET
-          FEC_PRES = :1,
-          FEC_ENTREGA = :2,
-          FEC_DEVOLUCION = :3,
-          OBS_PRES = :4,
-          EST_PRES = :5,
-          ID_USR = :6,
-          ID_EST = :7
-        WHERE ID_PRES = :8
-        `,
-        [
-          fecPres,
-          fecEntrega,
-          fecDevolucion,
-          obsPres,
-          estPres,
-          idUsr,
-          idEst,
-          id,
-        ],
-      );
-
-      await this.auditoriaService.create({
-        tablaAfectada: 'PRESTAMO',
-        accion: 'UPDATE',
-        descripcion: `Prestamo actualizado. ID_PRES: ${id}`,
-      });
-
-      await this.notificacionesService.create({
-        idUsr,
-        mensaje: `Prestamo actualizado correctamente. ID_PRES: ${id}`,
-        tipoNot: 'PRESTAMO',
-      });
-
-      return await this.findOne(id);
     } catch (error) {
       if (
         error instanceof NotFoundException ||
@@ -292,28 +456,51 @@ export class PrestamosService {
    */
   async delete(id: number): Promise<{ message: string }> {
     try {
-      const prestamo = await this.findOne(id);
+      return await this.prestamoRepository.manager.transaction(
+        async (transactionalEntityManager) => {
+          const prestamo = await this.findPrestamoForUpdate(
+            transactionalEntityManager,
+            id,
+          );
 
-      await this.prestamoRepository.query(
-        'UPDATE PRESTAMO SET EST_PRES = 0 WHERE ID_PRES = :1',
-        [id],
+          if (Number(prestamo.EST_PRES) !== 1) {
+            throw new BadRequestException(`Prestamo ${id} ya esta eliminado`);
+          }
+
+          await this.ajustarStockDetallesPrestamo(
+            transactionalEntityManager,
+            id,
+            'DEVOLVER',
+          );
+
+          await transactionalEntityManager.query(
+            'UPDATE PRESTAMO SET EST_PRES = 0 WHERE ID_PRES = :1',
+            [id],
+          );
+
+          await this.auditoriaService.create(
+            {
+              tablaAfectada: 'PRESTAMO',
+              accion: 'DELETE',
+              descripcion: `Prestamo eliminado logicamente. ID_PRES: ${id}`,
+            },
+            transactionalEntityManager,
+          );
+
+          await this.notificacionesService.create(
+            {
+              idUsr: prestamo.ID_USR,
+              mensaje: `Prestamo eliminado logicamente. ID_PRES: ${id}`,
+              tipoNot: 'PRESTAMO',
+            },
+            transactionalEntityManager,
+          );
+
+          return {
+            message: `Prestamo ${id} eliminado correctamente`,
+          };
+        },
       );
-
-      await this.auditoriaService.create({
-        tablaAfectada: 'PRESTAMO',
-        accion: 'DELETE',
-        descripcion: `Prestamo eliminado logicamente. ID_PRES: ${id}`,
-      });
-
-      await this.notificacionesService.create({
-        idUsr: (prestamo as any).ID_USR ?? prestamo.idUsr,
-        mensaje: `Prestamo eliminado logicamente. ID_PRES: ${id}`,
-        tipoNot: 'PRESTAMO',
-      });
-
-      return {
-        message: `Prestamo ${id} eliminado correctamente`,
-      };
     } catch (error) {
       if (
         error instanceof NotFoundException ||
@@ -339,90 +526,75 @@ export class PrestamosService {
     dto: CreateDetallePrestamoDto,
   ): Promise<unknown> {
     try {
-      await this.findOne(prestamoId);
-
       const canPre = Number(dto.canPre ?? 1);
       this.validateCantidad(canPre);
 
-      const articuloResult = await this.prestamoRepository.query(
-        'SELECT * FROM ARTICULO WHERE ID_ART = :1',
-        [dto.idArt],
+      return await this.prestamoRepository.manager.transaction(
+        async (transactionalEntityManager) => {
+          const prestamo = await this.findPrestamoForUpdate(
+            transactionalEntityManager,
+            prestamoId,
+          );
+          this.validatePrestamoActivo(prestamo);
+
+          const articulo = await this.findArticuloForUpdate(
+            transactionalEntityManager,
+            dto.idArt,
+          );
+
+          const detalleResult = await transactionalEntityManager.query(
+            'SELECT * FROM DETALLE_PRESTAMO WHERE ID_PRES = :1 AND ID_ART = :2 FOR UPDATE',
+            [prestamoId, dto.idArt],
+          );
+
+          if (detalleResult.length > 0) {
+            throw new BadRequestException(
+              `El articulo ${dto.idArt} ya existe en el prestamo ${prestamoId}`,
+            );
+          }
+
+          await this.descontarStock(transactionalEntityManager, articulo, canPre);
+
+          await transactionalEntityManager.query(
+            `
+            INSERT INTO DETALLE_PRESTAMO (
+              ID_PRES,
+              ID_ART,
+              CAN_PRE
+            ) VALUES (
+              :1,
+              :2,
+              :3
+            )
+            `,
+            [prestamoId, dto.idArt, canPre],
+          );
+
+          await this.movimientosService.create(
+            {
+              idPres: prestamoId,
+              tipoMov: 'DETALLE_PRESTAMO',
+              descripcion: `Detalle de prestamo agregado. ID_ART: ${dto.idArt}, CAN_PRE: ${canPre}`,
+            },
+            transactionalEntityManager,
+          );
+
+          await this.auditoriaService.create(
+            {
+              tablaAfectada: 'DETALLE_PRESTAMO',
+              accion: 'INSERT',
+              descripcion: `Detalle de prestamo agregado. ID_PRES: ${prestamoId}, ID_ART: ${dto.idArt}, CAN_PRE: ${canPre}`,
+            },
+            transactionalEntityManager,
+          );
+
+          return {
+            ID_PRES: prestamoId,
+            ID_ART: dto.idArt,
+            CAN_PRE: canPre,
+          };
+        },
       );
-
-      if (articuloResult.length === 0) {
-        throw new NotFoundException(
-          `Articulo con ID ${dto.idArt} no encontrado`,
-        );
-      }
-
-      const detalleResult = await this.prestamoRepository.query(
-        'SELECT * FROM DETALLE_PRESTAMO WHERE ID_PRES = :1 AND ID_ART = :2',
-        [prestamoId, dto.idArt],
-      );
-
-      if (detalleResult.length > 0) {
-        throw new BadRequestException(
-          `El articulo ${dto.idArt} ya existe en el prestamo ${prestamoId}`,
-        );
-      }
-
-      if (Number(articuloResult[0].EST_ART) !== 1) {
-        throw new BadRequestException(`El articulo ${dto.idArt} esta inactivo`);
-      }
-
-      const stock = Number(articuloResult[0].CAN_ART ?? 0);
-
-      const articuloPrestadoResult = await this.prestamoRepository.query(
-        `
-        SELECT NVL(SUM(dp.CAN_PRE), 0) AS PRESTADO
-        FROM DETALLE_PRESTAMO dp
-        JOIN PRESTAMO p ON dp.ID_PRES = p.ID_PRES
-        WHERE dp.ID_ART = :1
-        AND p.EST_PRES = 1
-        `,
-        [dto.idArt],
-      );
-
-      const prestado = Number(articuloPrestadoResult[0]?.PRESTADO ?? 0);
-
-      if (stock < canPre || prestado + canPre > stock) {
-        throw new BadRequestException(
-          `No hay stock suficiente para el articulo ${dto.idArt}`,
-        );
-      }
-
-      await this.prestamoRepository.query(
-        `
-        INSERT INTO DETALLE_PRESTAMO (
-          ID_PRES,
-          ID_ART,
-          CAN_PRE
-        ) VALUES (
-          :1,
-          :2,
-          :3
-        )
-        `,
-        [prestamoId, dto.idArt, canPre],
-      );
-
-      await this.movimientosService.create({
-        idPres: prestamoId,
-        tipoMov: 'DETALLE_PRESTAMO',
-        descripcion: `Detalle de prestamo agregado. ID_ART: ${dto.idArt}, CAN_PRE: ${canPre}`,
-      });
-
-      await this.auditoriaService.create({
-        tablaAfectada: 'DETALLE_PRESTAMO',
-        accion: 'INSERT',
-        descripcion: `Detalle de prestamo agregado. ID_PRES: ${prestamoId}, ID_ART: ${dto.idArt}, CAN_PRE: ${canPre}`,
-      });
-
-      return {
-        ID_PRES: prestamoId,
-        ID_ART: dto.idArt,
-        CAN_PRE: canPre,
-      };
     } catch (error) {
       if (
         error instanceof NotFoundException ||
@@ -474,86 +646,76 @@ export class PrestamosService {
     cantidad: number,
   ): Promise<unknown> {
     try {
-      await this.findOne(prestamoId);
       const nuevaCantidad = Number(cantidad);
-
-      const detalleResult = await this.prestamoRepository.query(
-        'SELECT * FROM DETALLE_PRESTAMO WHERE ID_PRES = :1 AND ID_ART = :2',
-        [prestamoId, articuloId],
-      );
-
-      if (detalleResult.length === 0) {
-        throw new NotFoundException(
-          `Detalle de prestamo ${prestamoId} con articulo ${articuloId} no encontrado`,
-        );
-      }
-
       this.validateCantidad(nuevaCantidad);
 
-      const articuloResult = await this.prestamoRepository.query(
-        'SELECT * FROM ARTICULO WHERE ID_ART = :1',
-        [articuloId],
+      return await this.prestamoRepository.manager.transaction(
+        async (transactionalEntityManager) => {
+          const prestamo = await this.findPrestamoForUpdate(
+            transactionalEntityManager,
+            prestamoId,
+          );
+          this.validatePrestamoActivo(prestamo);
+          const articulo = await this.findArticuloForUpdate(
+            transactionalEntityManager,
+            articuloId,
+          );
+          const detalle = await this.findDetalleForUpdate(
+            transactionalEntityManager,
+            prestamoId,
+            articuloId,
+          );
+
+          const cantidadActual = Number(detalle.CAN_PRE ?? 0);
+          const diff = nuevaCantidad - cantidadActual;
+
+          if (diff > 0) {
+            await this.descontarStock(transactionalEntityManager, articulo, diff);
+          }
+
+          if (diff < 0) {
+            await this.devolverStock(
+              transactionalEntityManager,
+              articuloId,
+              Math.abs(diff),
+            );
+          }
+
+          await transactionalEntityManager.query(
+            `
+            UPDATE DETALLE_PRESTAMO
+            SET CAN_PRE = :1
+            WHERE ID_PRES = :2
+              AND ID_ART = :3
+            `,
+            [nuevaCantidad, prestamoId, articuloId],
+          );
+
+          await this.movimientosService.create(
+            {
+              idPres: prestamoId,
+              tipoMov: 'ACTUALIZACION_DETALLE',
+              descripcion: `Detalle de prestamo actualizado. ID_ART: ${articuloId}, CAN_PRE_ANTERIOR: ${cantidadActual}, CAN_PRE_NUEVA: ${nuevaCantidad}`,
+            },
+            transactionalEntityManager,
+          );
+
+          await this.auditoriaService.create(
+            {
+              tablaAfectada: 'DETALLE_PRESTAMO',
+              accion: 'UPDATE',
+              descripcion: `Detalle de prestamo actualizado. ID_PRES: ${prestamoId}, ID_ART: ${articuloId}, CAN_PRE_ANTERIOR: ${cantidadActual}, CAN_PRE_NUEVA: ${nuevaCantidad}`,
+            },
+            transactionalEntityManager,
+          );
+
+          return {
+            ID_PRES: prestamoId,
+            ID_ART: articuloId,
+            CAN_PRE: nuevaCantidad,
+          };
+        },
       );
-
-      if (articuloResult.length === 0) {
-        throw new NotFoundException(
-          `Articulo con ID ${articuloId} no encontrado`,
-        );
-      }
-
-      if (Number(articuloResult[0].EST_ART) !== 1) {
-        throw new BadRequestException(`El articulo ${articuloId} esta inactivo`);
-      }
-
-      const stock = Number(articuloResult[0].CAN_ART ?? 0);
-
-      const articuloPrestadoResult = await this.prestamoRepository.query(
-        `
-        SELECT NVL(SUM(dp.CAN_PRE), 0) AS PRESTADO
-        FROM DETALLE_PRESTAMO dp
-        JOIN PRESTAMO p ON dp.ID_PRES = p.ID_PRES
-        WHERE dp.ID_ART = :1
-        AND p.EST_PRES = 1
-        `,
-        [articuloId],
-      );
-
-      const prestado = Number(articuloPrestadoResult[0]?.PRESTADO ?? 0);
-      const cantidadActual = Number(detalleResult[0].CAN_PRE ?? 0);
-
-      if (prestado - cantidadActual + nuevaCantidad > stock) {
-        throw new BadRequestException(
-          `No hay stock suficiente para el articulo ${articuloId}`,
-        );
-      }
-
-      await this.prestamoRepository.query(
-        `
-        UPDATE DETALLE_PRESTAMO
-        SET CAN_PRE = :1
-        WHERE ID_PRES = :2
-          AND ID_ART = :3
-        `,
-        [nuevaCantidad, prestamoId, articuloId],
-      );
-
-      await this.movimientosService.create({
-        idPres: prestamoId,
-        tipoMov: 'ACTUALIZACION_DETALLE',
-        descripcion: `Detalle de prestamo actualizado. ID_ART: ${articuloId}, CAN_PRE_ANTERIOR: ${cantidadActual}, CAN_PRE_NUEVA: ${nuevaCantidad}`,
-      });
-
-      await this.auditoriaService.create({
-        tablaAfectada: 'DETALLE_PRESTAMO',
-        accion: 'UPDATE',
-        descripcion: `Detalle de prestamo actualizado. ID_PRES: ${prestamoId}, ID_ART: ${articuloId}, CAN_PRE_ANTERIOR: ${cantidadActual}, CAN_PRE_NUEVA: ${nuevaCantidad}`,
-      });
-
-      return {
-        ID_PRES: prestamoId,
-        ID_ART: articuloId,
-        CAN_PRE: nuevaCantidad,
-      };
     } catch (error) {
       if (
         error instanceof NotFoundException ||
@@ -579,52 +741,64 @@ export class PrestamosService {
     articuloId: number,
   ): Promise<{ message: string }> {
     try {
-      await this.findOne(prestamoId);
+      return await this.prestamoRepository.manager.transaction(
+        async (transactionalEntityManager) => {
+          const prestamo = await this.findPrestamoForUpdate(
+            transactionalEntityManager,
+            prestamoId,
+          );
+          this.validatePrestamoActivo(prestamo);
+          await this.findArticuloForUpdate(
+            transactionalEntityManager,
+            articuloId,
+            false,
+          );
+          const detalle = await this.findDetalleForUpdate(
+            transactionalEntityManager,
+            prestamoId,
+            articuloId,
+          );
 
-      const detalleResult = await this.prestamoRepository.query(
-        'SELECT * FROM DETALLE_PRESTAMO WHERE ID_PRES = :1 AND ID_ART = :2',
-        [prestamoId, articuloId],
+          const cantidad = Number(detalle.CAN_PRE ?? 0);
+
+          await transactionalEntityManager.query(
+            `
+            DELETE FROM DETALLE_PRESTAMO
+            WHERE ID_PRES = :1
+              AND ID_ART = :2
+            `,
+            [prestamoId, articuloId],
+          );
+
+          await this.devolverStock(
+            transactionalEntityManager,
+            articuloId,
+            cantidad,
+          );
+
+          await this.movimientosService.create(
+            {
+              idPres: prestamoId,
+              tipoMov: 'ELIMINACION_DETALLE',
+              descripcion: `Detalle de prestamo eliminado. ID_ART: ${articuloId}, CAN_PRE: ${cantidad}`,
+            },
+            transactionalEntityManager,
+          );
+
+          await this.auditoriaService.create(
+            {
+              tablaAfectada: 'DETALLE_PRESTAMO',
+              accion: 'DELETE',
+              descripcion: `Detalle de prestamo eliminado. ID_PRES: ${prestamoId}, ID_ART: ${articuloId}, CAN_PRE: ${cantidad}`,
+            },
+            transactionalEntityManager,
+          );
+
+          return {
+            message: `Detalle de prestamo ${prestamoId} con articulo ${articuloId} eliminado correctamente`,
+          };
+        },
       );
-
-      if (detalleResult.length === 0) {
-        throw new NotFoundException(
-          `Detalle de prestamo ${prestamoId} con articulo ${articuloId} no encontrado`,
-        );
-      }
-
-      const result = await this.prestamoRepository.query(
-        `
-        DELETE FROM DETALLE_PRESTAMO
-        WHERE ID_PRES = :1
-          AND ID_ART = :2
-        `,
-        [prestamoId, articuloId],
-      );
-
-      const affectedRows =
-        typeof result === 'number' ? result : result?.rowsAffected;
-
-      if (affectedRows === 0) {
-        throw new NotFoundException(
-          `Detalle de prestamo ${prestamoId} con articulo ${articuloId} no encontrado`,
-        );
-      }
-
-      await this.movimientosService.create({
-        idPres: prestamoId,
-        tipoMov: 'ELIMINACION_DETALLE',
-        descripcion: `Detalle de prestamo eliminado. ID_ART: ${articuloId}, CAN_PRE: ${detalleResult[0].CAN_PRE}`,
-      });
-
-      await this.auditoriaService.create({
-        tablaAfectada: 'DETALLE_PRESTAMO',
-        accion: 'DELETE',
-        descripcion: `Detalle de prestamo eliminado. ID_PRES: ${prestamoId}, ID_ART: ${articuloId}, CAN_PRE: ${detalleResult[0].CAN_PRE}`,
-      });
-
-      return {
-        message: `Detalle de prestamo ${prestamoId} con articulo ${articuloId} eliminado correctamente`,
-      };
     } catch (error) {
       if (
         error instanceof NotFoundException ||
