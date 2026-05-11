@@ -26,6 +26,37 @@ export class PrestamosService {
     this.logger.log('PrestamosService initialized with Database connection');
   }
 
+  private validateFechas(
+    fecPres?: string | Date | null,
+    fecDevolucion?: string | Date | null,
+  ): void {
+    if (!fecPres || !fecDevolucion) {
+      return;
+    }
+
+    const fechaPrestamo = new Date(fecPres);
+    const fechaDevolucion = new Date(fecDevolucion);
+
+    if (
+      Number.isNaN(fechaPrestamo.getTime()) ||
+      Number.isNaN(fechaDevolucion.getTime())
+    ) {
+      throw new BadRequestException('Las fechas del prestamo no son validas');
+    }
+
+    if (fechaPrestamo > fechaDevolucion) {
+      throw new BadRequestException(
+        'La fecha de prestamo no puede ser mayor a la fecha de devolucion',
+      );
+    }
+  }
+
+  private validateCantidad(cantidad: number): void {
+    if (!Number.isFinite(cantidad) || cantidad <= 0) {
+      throw new BadRequestException('La cantidad debe ser mayor a 0');
+    }
+  }
+
   /**
    * Obtener todos los prestamos
    * @returns Lista de prestamos
@@ -82,6 +113,7 @@ export class PrestamosService {
   async create(createDto: CreatePrestamoDto): Promise<PrestamoOrm> {
     try {
       this.logger.debug('Creando nuevo prestamo');
+      this.validateFechas(createDto.fecPres, createDto.fecDevolucion);
 
       return await this.prestamoRepository.manager.transaction(
         async (transactionalEntityManager) => {
@@ -116,6 +148,10 @@ export class PrestamosService {
         },
       );
     } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
       this.logger.error('Error al crear prestamo:');
       this.logger.error(error);
 
@@ -157,6 +193,8 @@ export class PrestamosService {
       const idUsr = updateDto.idUsr ?? current.ID_USR;
       const idEst = updateDto.idEst ?? current.ID_EST;
 
+      this.validateFechas(fecPres, fecDevolucion);
+
       await this.prestamoRepository.query(
         `
         UPDATE PRESTAMO
@@ -184,7 +222,10 @@ export class PrestamosService {
 
       return await this.findOne(id);
     } catch (error) {
-      if (error instanceof NotFoundException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
 
@@ -235,7 +276,8 @@ export class PrestamosService {
     try {
       await this.findOne(prestamoId);
 
-      const canPre = dto.canPre ?? 1;
+      const canPre = Number(dto.canPre ?? 1);
+      this.validateCantidad(canPre);
 
       const articuloResult = await this.prestamoRepository.query(
         'SELECT * FROM ARTICULO WHERE ID_ART = :1',
@@ -263,11 +305,7 @@ export class PrestamosService {
         throw new BadRequestException(`El articulo ${dto.idArt} esta inactivo`);
       }
 
-      if (canPre <= 0) {
-        throw new BadRequestException('La cantidad debe ser mayor a 0');
-      }
-
-      const stock = Number(articuloResult[0].STOCK ?? 0);
+      const stock = Number(articuloResult[0].CAN_ART ?? 0);
 
       const articuloPrestadoResult = await this.prestamoRepository.query(
         `
@@ -282,7 +320,7 @@ export class PrestamosService {
 
       const prestado = Number(articuloPrestadoResult[0]?.PRESTADO ?? 0);
 
-      if (prestado + canPre > stock) {
+      if (stock < canPre || prestado + canPre > stock) {
         throw new BadRequestException(
           `No hay stock suficiente para el articulo ${dto.idArt}`,
         );
@@ -360,6 +398,7 @@ export class PrestamosService {
   ): Promise<unknown> {
     try {
       await this.findOne(prestamoId);
+      const nuevaCantidad = Number(cantidad);
 
       const detalleResult = await this.prestamoRepository.query(
         'SELECT * FROM DETALLE_PRESTAMO WHERE ID_PRES = :1 AND ID_ART = :2',
@@ -372,8 +411,43 @@ export class PrestamosService {
         );
       }
 
-      if (cantidad <= 0) {
-        throw new BadRequestException('La cantidad debe ser mayor a 0');
+      this.validateCantidad(nuevaCantidad);
+
+      const articuloResult = await this.prestamoRepository.query(
+        'SELECT * FROM ARTICULO WHERE ID_ART = :1',
+        [articuloId],
+      );
+
+      if (articuloResult.length === 0) {
+        throw new NotFoundException(
+          `Articulo con ID ${articuloId} no encontrado`,
+        );
+      }
+
+      if (Number(articuloResult[0].EST_ART) !== 1) {
+        throw new BadRequestException(`El articulo ${articuloId} esta inactivo`);
+      }
+
+      const stock = Number(articuloResult[0].CAN_ART ?? 0);
+
+      const articuloPrestadoResult = await this.prestamoRepository.query(
+        `
+        SELECT NVL(SUM(dp.CAN_PRE), 0) AS PRESTADO
+        FROM DETALLE_PRESTAMO dp
+        JOIN PRESTAMO p ON dp.ID_PRES = p.ID_PRES
+        WHERE dp.ID_ART = :1
+        AND p.EST_PRES = 1
+        `,
+        [articuloId],
+      );
+
+      const prestado = Number(articuloPrestadoResult[0]?.PRESTADO ?? 0);
+      const cantidadActual = Number(detalleResult[0].CAN_PRE ?? 0);
+
+      if (prestado - cantidadActual + nuevaCantidad > stock) {
+        throw new BadRequestException(
+          `No hay stock suficiente para el articulo ${articuloId}`,
+        );
       }
 
       await this.prestamoRepository.query(
@@ -383,13 +457,13 @@ export class PrestamosService {
         WHERE ID_PRES = :2
           AND ID_ART = :3
         `,
-        [cantidad, prestamoId, articuloId],
+        [nuevaCantidad, prestamoId, articuloId],
       );
 
       return {
         ID_PRES: prestamoId,
         ID_ART: articuloId,
-        CAN_PRE: cantidad,
+        CAN_PRE: nuevaCantidad,
       };
     } catch (error) {
       if (
