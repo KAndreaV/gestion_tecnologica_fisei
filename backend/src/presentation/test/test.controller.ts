@@ -1,10 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
-import { OracleService } from '../../infrastructure/database/oracle/oracle.service';
 
 @Controller()
 export class TestController {
-  constructor(private oracle: OracleService) {}
-
   @Get()
   hello() {
     return {
@@ -12,8 +9,11 @@ export class TestController {
     };
   }
 
-  @Get('db')
-  async db() {
-    return await this.oracle.testConnection();
+  @Get('health')
+  health() {
+    return {
+      status: 'ok',
+      timestamp: new Date(),
+    };
   }
 }

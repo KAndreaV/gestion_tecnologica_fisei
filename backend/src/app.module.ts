@@ -1,13 +1,21 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { OracleModule } from './infrastructure/database/oracle/oracle.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 import { TestController } from './presentation/test/test.controller';
+import { ArticulosModule } from './presentation/modules/articulos.module';
+import { DatabaseModule } from './infrastructure/database/database.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    OracleModule,
+    ConfigModule.forRoot({ 
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    DatabaseModule,
+    ArticulosModule,
   ],
-  controllers: [TestController],
+  controllers: [AppController, TestController],
+  providers: [AppService],
 })
 export class AppModule {}
