@@ -13,25 +13,39 @@ export class MantenimientoOrm {
   idMan!: number;
 
   @Column({
-    name: 'FEC_MAN',
+    name: 'DES_MAN',
+    type: 'varchar2',
+    length: 300,
+  })
+  desMan!: string;
+
+  @Column({
+    name: 'TIP_MAN',
+    type: 'varchar2',
+    length: 60,
+  })
+  tipMan!: string;
+
+  @Column({
+    name: 'FEC_INI',
     type: 'date',
   })
-  fecMan!: Date;
+  fecIni!: Date;
 
   @Column({
-    name: 'TIPO_MAN',
-    type: 'varchar2',
-    length: 100,
+    name: 'FEC_FIN',
+    type: 'date',
+    nullable: true,
   })
-  tipoMan!: string;
+  fecFin?: Date;
 
   @Column({
-    name: 'DESC_MAN',
+    name: 'OBS_MAN',
     type: 'varchar2',
     length: 500,
     nullable: true,
   })
-  descMan?: string;
+  obsMen?: string;
 
   @Column({
     name: 'EST_MAN',
@@ -51,4 +65,10 @@ export class MantenimientoOrm {
     type: 'number',
   })
   idUsr!: number;
+
+  @Column({
+    name: 'ID_EST',
+    type: 'number',
+  })
+  idEst!: number;
 }

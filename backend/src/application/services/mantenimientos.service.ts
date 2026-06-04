@@ -65,9 +65,36 @@ export class MantenimientosService {
     return result[0];
   }
 
-  private validateTipoMantenimiento(tipoMan: string): void {
-    if (!['PREVENTIVO', 'CORRECTIVO'].includes(tipoMan)) {
+  private validateTipoMantenimiento(tipMan: string): void {
+    if (!['PREVENTIVO', 'CORRECTIVO'].includes(tipMan)) {
       throw new BadRequestException('El tipo de mantenimiento no es valido');
+    }
+  }
+
+  private validateFechas(
+    fecIni?: string | Date | null,
+    fecFin?: string | Date | null,
+  ): void {
+    if (!fecIni || !fecFin) {
+      return;
+    }
+
+    const fechaInicio = new Date(fecIni);
+    const fechaFin = new Date(fecFin);
+
+    if (
+      Number.isNaN(fechaInicio.getTime()) ||
+      Number.isNaN(fechaFin.getTime())
+    ) {
+      throw new BadRequestException(
+        'Las fechas del mantenimiento no son validas',
+      );
+    }
+
+    if (fechaInicio > fechaFin) {
+      throw new BadRequestException(
+        'La fecha de inicio no puede ser mayor a la fecha de fin',
+      );
     }
   }
 
@@ -127,7 +154,8 @@ export class MantenimientosService {
   async create(createDto: CreateMantenimientoDto): Promise<MantenimientoOrm> {
     try {
       this.logger.debug('Creando nuevo mantenimiento');
-      this.validateTipoMantenimiento(createDto.tipoMan);
+      this.validateTipoMantenimiento(createDto.tipMan);
+      this.validateFechas(createDto.fecIni, createDto.fecFin);
 
       return await this.mantenimientoRepository.manager.transaction(
         async (transactionalEntityManager) => {
@@ -150,29 +178,38 @@ export class MantenimientosService {
             `
             INSERT INTO MANTENIMIENTO (
               ID_MAN,
-              FEC_MAN,
-              TIPO_MAN,
-              DESC_MAN,
+              DES_MAN,
+              TIP_MAN,
+              FEC_INI,
+              FEC_FIN,
+              OBS_MAN,
               EST_MAN,
               ID_ART,
-              ID_USR
+              ID_USR,
+              ID_EST
             ) VALUES (
               :1,
-              NVL(:2, SYSDATE),
+              :2,
               :3,
-              :4,
-              1,
+              NVL(:4, SYSDATE),
               :5,
-              :6
+              :6,
+              1,
+              :7,
+              :8,
+              :9
             )
             `,
             [
               nextId,
-              createDto.fecMan ? new Date(createDto.fecMan) : null,
-              createDto.tipoMan,
-              createDto.descMan ?? null,
+              createDto.desMan,
+              createDto.tipMan,
+              createDto.fecIni ? new Date(createDto.fecIni) : null,
+              createDto.fecFin ? new Date(createDto.fecFin) : null,
+              createDto.obsMen ?? null,
               createDto.idArt,
               createDto.idUsr,
+              createDto.idEst,
             ],
           );
 
@@ -237,16 +274,22 @@ export class MantenimientosService {
             id,
           );
 
-          const fecMan = updateDto.fecMan
-            ? new Date(updateDto.fecMan)
-            : current.FEC_MAN;
-          const tipoMan = updateDto.tipoMan ?? current.TIPO_MAN;
-          const descMan = updateDto.descMan ?? current.DESC_MAN ?? null;
+          const desMan = updateDto.desMan ?? current.DES_MAN;
+          const tipMan = updateDto.tipMan ?? current.TIP_MAN;
+          const fecIni = updateDto.fecIni
+            ? new Date(updateDto.fecIni)
+            : current.FEC_INI;
+          const fecFin = updateDto.fecFin
+            ? new Date(updateDto.fecFin)
+            : current.FEC_FIN ?? null;
+          const obsMen = updateDto.obsMen ?? current.OBS_MAN ?? null;
           const estMan = updateDto.estMan ?? current.EST_MAN;
           const idArt = updateDto.idArt ?? current.ID_ART;
           const idUsr = updateDto.idUsr ?? current.ID_USR;
+          const idEst = updateDto.idEst ?? current.ID_EST;
 
-          this.validateTipoMantenimiento(tipoMan);
+          this.validateTipoMantenimiento(tipMan);
+          this.validateFechas(fecIni, fecFin);
 
           if (![0, 1].includes(Number(estMan))) {
             throw new BadRequestException(
@@ -262,15 +305,29 @@ export class MantenimientosService {
             `
             UPDATE MANTENIMIENTO
             SET
-              FEC_MAN = :1,
-              TIPO_MAN = :2,
-              DESC_MAN = :3,
-              EST_MAN = :4,
-              ID_ART = :5,
-              ID_USR = :6
-            WHERE ID_MAN = :7
+              DES_MAN = :1,
+              TIP_MAN = :2,
+              FEC_INI = :3,
+              FEC_FIN = :4,
+              OBS_MAN = :5,
+              EST_MAN = :6,
+              ID_ART = :7,
+              ID_USR = :8,
+              ID_EST = :9
+            WHERE ID_MAN = :10
             `,
-            [fecMan, tipoMan, descMan, estMan, idArt, idUsr, id],
+            [
+              desMan,
+              tipMan,
+              fecIni,
+              fecFin,
+              obsMen,
+              estMan,
+              idArt,
+              idUsr,
+              idEst,
+              id,
+            ],
           );
 
           await this.auditoriaService.create(

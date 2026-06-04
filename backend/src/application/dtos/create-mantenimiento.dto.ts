@@ -7,14 +7,24 @@ export class CreateMantenimientoDto {
   @IsNumber()
   idUsr!: number;
 
-  @IsString()
-  tipoMan!: string;
+  @IsNumber()
+  idEst!: number;
 
-  @IsOptional()
   @IsString()
-  descMan?: string;
+  tipMan!: string;
+
+  @IsString()
+  desMan!: string;
 
   @IsOptional()
   @IsDateString()
-  fecMan?: string;
+  fecIni?: string;
+
+  @IsOptional()
+  @IsDateString()
+  fecFin?: string;
+
+  @IsOptional()
+  @IsString()
+  obsMen?: string;
 }

@@ -14,16 +14,28 @@ export class UpdateMantenimientoDto {
   idUsr?: number;
 
   @IsOptional()
-  @IsString()
-  tipoMan?: string;
+  @IsNumber()
+  idEst?: number;
 
   @IsOptional()
   @IsString()
-  descMan?: string;
+  tipMan?: string;
+
+  @IsOptional()
+  @IsString()
+  desMan?: string;
 
   @IsOptional()
   @IsDateString()
-  fecMan?: string;
+  fecIni?: string;
+
+  @IsOptional()
+  @IsDateString()
+  fecFin?: string;
+
+  @IsOptional()
+  @IsString()
+  obsMen?: string;
 
   @IsNumber()
   @IsOptional()
