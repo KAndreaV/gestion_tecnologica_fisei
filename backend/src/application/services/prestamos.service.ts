@@ -286,6 +286,7 @@ export class PrestamosService {
             prestamo,
           );
 
+          /* TEMPORAL - movimientos desalineado con DDL Oracle
           await this.movimientosService.create(
             {
               idPres: nextId,
@@ -294,7 +295,9 @@ export class PrestamosService {
             },
             transactionalEntityManager,
           );
+          */
 
+          /* TEMPORAL - auditoria desalineada con DDL Oracle
           await this.auditoriaService.create(
             {
               tablaAfectada: 'PRESTAMO',
@@ -303,7 +306,9 @@ export class PrestamosService {
             },
             transactionalEntityManager,
           );
+          */
 
+          /* TEMPORAL - notificaciones desalineadas con DDL Oracle
           await this.notificacionesService.create(
             {
               idUsr: createDto.idUsr,
@@ -312,6 +317,7 @@ export class PrestamosService {
             },
             transactionalEntityManager,
           );
+          */
 
           return prestamoCreado;
         },
@@ -409,6 +415,7 @@ export class PrestamosService {
             ],
           );
 
+          /* TEMPORAL - auditoria desalineada con DDL Oracle
           await this.auditoriaService.create(
             {
               tablaAfectada: 'PRESTAMO',
@@ -417,7 +424,9 @@ export class PrestamosService {
             },
             transactionalEntityManager,
           );
+          */
 
+          /* TEMPORAL - notificaciones desalineadas con DDL Oracle
           await this.notificacionesService.create(
             {
               idUsr,
@@ -426,6 +435,7 @@ export class PrestamosService {
             },
             transactionalEntityManager,
           );
+          */
 
           const updated = await transactionalEntityManager.query(
             'SELECT * FROM PRESTAMO WHERE ID_PRES = :1',
@@ -478,6 +488,7 @@ export class PrestamosService {
             [id],
           );
 
+          /* TEMPORAL - auditoria desalineada con DDL Oracle
           await this.auditoriaService.create(
             {
               tablaAfectada: 'PRESTAMO',
@@ -486,7 +497,9 @@ export class PrestamosService {
             },
             transactionalEntityManager,
           );
+          */
 
+          /* TEMPORAL - notificaciones desalineadas con DDL Oracle
           await this.notificacionesService.create(
             {
               idUsr: prestamo.ID_USR,
@@ -495,6 +508,7 @@ export class PrestamosService {
             },
             transactionalEntityManager,
           );
+          */
 
           return {
             message: `Prestamo ${id} eliminado correctamente`,
@@ -570,6 +584,7 @@ export class PrestamosService {
             [prestamoId, dto.idArt, canPre],
           );
 
+          /* TEMPORAL - movimientos desalineado con DDL Oracle
           await this.movimientosService.create(
             {
               idPres: prestamoId,
@@ -578,7 +593,9 @@ export class PrestamosService {
             },
             transactionalEntityManager,
           );
+          */
 
+          /* TEMPORAL - auditoria desalineada con DDL Oracle
           await this.auditoriaService.create(
             {
               tablaAfectada: 'DETALLE_PRESTAMO',
@@ -587,6 +604,7 @@ export class PrestamosService {
             },
             transactionalEntityManager,
           );
+          */
 
           return {
             ID_PRES: prestamoId,
@@ -691,6 +709,7 @@ export class PrestamosService {
             [nuevaCantidad, prestamoId, articuloId],
           );
 
+          /* TEMPORAL - movimientos desalineado con DDL Oracle
           await this.movimientosService.create(
             {
               idPres: prestamoId,
@@ -699,7 +718,9 @@ export class PrestamosService {
             },
             transactionalEntityManager,
           );
+          */
 
+          /* TEMPORAL - auditoria desalineada con DDL Oracle
           await this.auditoriaService.create(
             {
               tablaAfectada: 'DETALLE_PRESTAMO',
@@ -708,6 +729,7 @@ export class PrestamosService {
             },
             transactionalEntityManager,
           );
+          */
 
           return {
             ID_PRES: prestamoId,
@@ -776,6 +798,7 @@ export class PrestamosService {
             cantidad,
           );
 
+          /* TEMPORAL - movimientos desalineado con DDL Oracle
           await this.movimientosService.create(
             {
               idPres: prestamoId,
@@ -784,7 +807,9 @@ export class PrestamosService {
             },
             transactionalEntityManager,
           );
+          */
 
+          /* TEMPORAL - auditoria desalineada con DDL Oracle
           await this.auditoriaService.create(
             {
               tablaAfectada: 'DETALLE_PRESTAMO',
@@ -793,6 +818,7 @@ export class PrestamosService {
             },
             transactionalEntityManager,
           );
+          */
 
           return {
             message: `Detalle de prestamo ${prestamoId} con articulo ${articuloId} eliminado correctamente`,

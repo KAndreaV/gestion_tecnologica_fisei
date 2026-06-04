@@ -215,6 +215,7 @@ export class MantenimientosService {
             ],
           );
 
+          /* TEMPORAL - auditoria desalineada con DDL Oracle
           await this.auditoriaService.create(
             {
               tablaAfectada: 'MANTENIMIENTO',
@@ -223,7 +224,9 @@ export class MantenimientosService {
             },
             transactionalEntityManager,
           );
+          */
 
+          /* TEMPORAL - notificaciones desalineadas con DDL Oracle
           await this.notificacionesService.create(
             {
               idUsr: createDto.idUsr,
@@ -232,7 +235,9 @@ export class MantenimientosService {
             },
             transactionalEntityManager,
           );
+          */
 
+          /* TEMPORAL - movimientos desalineado con DDL Oracle
           await this.movimientosService.create(
             {
               idPres: undefined,
@@ -241,6 +246,7 @@ export class MantenimientosService {
             },
             transactionalEntityManager,
           );
+          */
 
           const created = await transactionalEntityManager.query(
             'SELECT * FROM MANTENIMIENTO WHERE ID_MAN = :1',
@@ -341,6 +347,7 @@ export class MantenimientosService {
             ],
           );
 
+          /* TEMPORAL - auditoria desalineada con DDL Oracle
           await this.auditoriaService.create(
             {
               tablaAfectada: 'MANTENIMIENTO',
@@ -349,7 +356,9 @@ export class MantenimientosService {
             },
             transactionalEntityManager,
           );
+          */
 
+          /* TEMPORAL - notificaciones desalineadas con DDL Oracle
           await this.notificacionesService.create(
             {
               idUsr: idUsr,
@@ -358,6 +367,7 @@ export class MantenimientosService {
             },
             transactionalEntityManager,
           );
+          */
 
           const updated = await transactionalEntityManager.query(
             'SELECT * FROM MANTENIMIENTO WHERE ID_MAN = :1',
@@ -406,6 +416,7 @@ export class MantenimientosService {
             [id],
           );
 
+          /* TEMPORAL - auditoria desalineada con DDL Oracle
           await this.auditoriaService.create(
             {
               tablaAfectada: 'MANTENIMIENTO',
@@ -414,7 +425,9 @@ export class MantenimientosService {
             },
             transactionalEntityManager,
           );
+          */
 
+          /* TEMPORAL - notificaciones desalineadas con DDL Oracle
           await this.notificacionesService.create(
             {
               idUsr: mantenimiento.ID_USR,
@@ -423,6 +436,7 @@ export class MantenimientosService {
             },
             transactionalEntityManager,
           );
+          */
 
           return {
             message: `Mantenimiento ${id} eliminado correctamente`,

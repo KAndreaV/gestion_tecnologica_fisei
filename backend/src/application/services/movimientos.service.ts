@@ -31,7 +31,7 @@ export class MovimientosService {
   async findAll(): Promise<MovimientoOrm[]> {
     try {
       return await this.movimientoRepository.query(
-        'SELECT * FROM MOVIMIENTO ORDER BY FECHA_MOV DESC, ID_MOV DESC',
+        'SELECT * FROM MOVIMIENTO ORDER BY FEC_MOV DESC, ID_MOV DESC',
       );
     } catch (error) {
       this.logger.error(error);

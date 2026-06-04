@@ -27,7 +27,7 @@ export class AuditoriaService {
   async findAll(): Promise<AuditoriaOrm[]> {
     try {
       return await this.auditoriaRepository.query(
-        'SELECT * FROM AUDITORIA ORDER BY FECHA_AUD DESC, ID_AUD DESC',
+        'SELECT * FROM AUDITORIA ORDER BY FEC_AUD DESC, ID_AUD DESC',
       );
     } catch (error) {
       this.logger.error(error);
