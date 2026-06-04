@@ -11,6 +11,7 @@ import { UpdateMantenimientoDto } from '../dtos/update-mantenimiento.dto';
 import { MantenimientoOrm } from '../../infrastructure/orm/entities/mantenimiento.entity';
 import { MovimientosService } from './movimientos.service';
 import { AuditoriaService } from './auditoria.service';
+import { NotificacionesService } from './notificaciones.service';
 
 /**
  * Servicio de Mantenimientos
@@ -25,6 +26,7 @@ export class MantenimientosService {
     private readonly mantenimientoRepository: Repository<MantenimientoOrm>,
     private readonly auditoriaService: AuditoriaService,
     private readonly movimientosService: MovimientosService,
+    private readonly notificacionesService: NotificacionesService,
   ) {
     this.logger.log('MantenimientosService initialized with Database connection');
   }
@@ -222,6 +224,15 @@ export class MantenimientosService {
             transactionalEntityManager,
           );
 
+          await this.notificacionesService.create(
+            {
+              idUsr: createDto.idUsr,
+              mensaje: `Mantenimiento registrado correctamente. ID_MAN: ${nextId}, ID_ART: ${createDto.idArt}`,
+              tipoNot: 'MANTENIMIENTO',
+            },
+            transactionalEntityManager,
+          );
+
           await this.movimientosService.create(
             {
               idPres: undefined,
@@ -339,6 +350,15 @@ export class MantenimientosService {
             transactionalEntityManager,
           );
 
+          await this.notificacionesService.create(
+            {
+              idUsr: idUsr,
+              mensaje: `Mantenimiento actualizado correctamente. ID_MAN: ${id}`,
+              tipoNot: 'MANTENIMIENTO',
+            },
+            transactionalEntityManager,
+          );
+
           const updated = await transactionalEntityManager.query(
             'SELECT * FROM MANTENIMIENTO WHERE ID_MAN = :1',
             [id],
@@ -391,6 +411,15 @@ export class MantenimientosService {
               tablaAfectada: 'MANTENIMIENTO',
               accion: 'DELETE',
               descripcion: `Mantenimiento eliminado logicamente. ID_MAN: ${id}`,
+            },
+            transactionalEntityManager,
+          );
+
+          await this.notificacionesService.create(
+            {
+              idUsr: mantenimiento.ID_USR,
+              mensaje: `Mantenimiento eliminado logicamente. ID_MAN: ${id}`,
+              tipoNot: 'MANTENIMIENTO',
             },
             transactionalEntityManager,
           );

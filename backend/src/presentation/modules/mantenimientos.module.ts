@@ -5,6 +5,7 @@ import { MantenimientoOrm } from '../../infrastructure/orm/entities/mantenimient
 import { MantenimientosController } from '../controllers/mantenimientos.controller';
 import { AuditoriaModule } from './auditoria.module';
 import { MovimientosModule } from './movimientos.module';
+import { NotificacionesModule } from './notificaciones.module';
 
 /**
  * Modulo de Mantenimientos
@@ -16,6 +17,7 @@ import { MovimientosModule } from './movimientos.module';
     TypeOrmModule.forFeature([MantenimientoOrm]),
     AuditoriaModule,
     MovimientosModule,
+    NotificacionesModule,
   ],
   providers: [MantenimientosService],
   controllers: [MantenimientosController],
