@@ -187,7 +187,7 @@ export class MantenimientosService {
 
           await this.movimientosService.create(
             {
-              idPres: null as unknown as number,
+              idPres: undefined,
               tipoMov: 'MANTENIMIENTO',
               descripcion: `Mantenimiento registrado. ID_ART: ${createDto.idArt}`,
             },

@@ -1,8 +1,9 @@
 import { IsNumber, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateMovimientoDto {
+  @IsOptional()
   @IsNumber()
-  idPres!: number;
+  idPres?: number;
 
   @IsString()
   @MaxLength(80)
