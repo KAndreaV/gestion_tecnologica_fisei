@@ -2,6 +2,10 @@ import { Module, Logger, Global } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ArticuloOrm } from '../orm/entities/articulo.entity';
+import { CategoriaOrm } from '../orm/entities/categoria.entity';
+import { DepartamentoOrm } from '../orm/entities/departamento.entity';
+import { EstadoOrm } from '../orm/entities/estado.entity';
+import { UbicacionOrm } from '../orm/entities/ubicacion.entity';
 
 const logger = new Logger('DatabaseModule');
 
@@ -25,7 +29,13 @@ const logger = new Logger('DatabaseModule');
           connectString,
           username: configService.get<string>('ORACLE_USER') || 'gestionfisei',
           password: configService.get<string>('ORACLE_PASSWORD') || 'gestionfisei',
-          entities: [ArticuloOrm],
+          entities: [
+            ArticuloOrm,
+            CategoriaOrm,
+            DepartamentoOrm,
+            EstadoOrm,
+            UbicacionOrm,
+          ],
           synchronize: false,
           logging: false,
           retryAttempts: 3,

@@ -1,8 +1,9 @@
 import {
-  Injectable,
-  NotFoundException,
   BadRequestException,
+  ConflictException,
+  Injectable,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -10,10 +11,6 @@ import { ArticuloOrm } from '../../infrastructure/orm/entities/articulo.entity';
 import { CreateArticuloDto } from '../dtos/create-articulo.dto';
 import { UpdateArticuloDto } from '../dtos/update-articulo.dto';
 
-/**
- * Servicio de Artículos
- * Contiene la lógica de negocio para operaciones CRUD
- */
 @Injectable()
 export class ArticulosService {
   private readonly logger = new Logger(ArticulosService.name);
@@ -22,222 +19,274 @@ export class ArticulosService {
     @InjectRepository(ArticuloOrm)
     private readonly articuloRepository: Repository<ArticuloOrm>,
   ) {
-    this.logger.log('✅ ArticulosService initialized with Database connection');
+    this.logger.log('ArticulosService initialized with Database connection');
   }
 
-  /**
-   * Obtener todos los artículos
-   * @returns Lista de artículos
-   */
   async findAll(): Promise<ArticuloOrm[]> {
-  this.logger.debug('Buscando todos los artículos');
-
-  try {
-
-    const data = await this.articuloRepository.query(
-      'SELECT * FROM ARTICULO',
-    );
-
-    console.log('DATOS ORACLE:', data);
-
-    return data;
-
-  } catch (error) {
-
-    console.error(error);
-
-    throw new BadRequestException(
-      'Error al obtener los artículos de la base de datos',
-    );
+    try {
+      return await this.articuloRepository.query(
+        `SELECT
+          ID_ART "idArt",
+          NOM_ART "nomArt",
+          DES_ART "desArt",
+          SER_ART "serArt",
+          MAR_ART "marArt",
+          MOD_ART "modArt",
+          CAN_ART "canArt",
+          VAL_ART "valArt",
+          EST_ART "estArt",
+          ID_CAT "idCat",
+          ID_EST "idEst",
+          ID_DEP "idDep",
+          ID_UBI "idUbi",
+          FEC_REGISTRO "fecRegistro",
+          FEC_ACTUALIZACION "fecActualizacion"
+        FROM ARTICULO
+        WHERE EST_ART = 1
+        ORDER BY NOM_ART`,
+      );
+    } catch (error) {
+      this.logger.error(error);
+      throw new BadRequestException(
+        'Error al obtener los artículos de la base de datos',
+      );
+    }
   }
-}
-  /**
-   * Obtener un artículo por ID
-   * @param id ID del artículo
-   * @returns Artículo encontrado
-   */
- async findOne(id: number): Promise<ArticuloOrm> {
 
-  try {
+  async findOne(id: number): Promise<ArticuloOrm> {
+    try {
+      const result = await this.articuloRepository.query(
+        `SELECT
+          ID_ART "idArt",
+          NOM_ART "nomArt",
+          DES_ART "desArt",
+          SER_ART "serArt",
+          MAR_ART "marArt",
+          MOD_ART "modArt",
+          CAN_ART "canArt",
+          VAL_ART "valArt",
+          EST_ART "estArt",
+          ID_CAT "idCat",
+          ID_EST "idEst",
+          ID_DEP "idDep",
+          ID_UBI "idUbi",
+          FEC_REGISTRO "fecRegistro",
+          FEC_ACTUALIZACION "fecActualizacion"
+        FROM ARTICULO
+        WHERE ID_ART = :1
+          AND EST_ART = 1`,
+        [id],
+      );
+
+      if (result.length === 0) {
+        throw new NotFoundException(`Artículo con ID ${id} no encontrado`);
+      }
+
+      return result[0];
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      this.logger.error(error);
+      throw new BadRequestException('Error al buscar artículo');
+    }
+  }
+
+  async create(createDto: CreateArticuloDto): Promise<ArticuloOrm> {
+    try {
+      await this.validateCategoriaExists(createDto.idCat);
+      await this.validateEstadoArticulo(createDto.idEst);
+      await this.validateUniqueSerie(createDto.serArt);
+
+      const nextId = await this.getNextId();
+
+      await this.articuloRepository.query(
+        `INSERT INTO ARTICULO (
+          ID_ART,
+          NOM_ART,
+          DES_ART,
+          SER_ART,
+          MAR_ART,
+          MOD_ART,
+          CAN_ART,
+          VAL_ART,
+          EST_ART,
+          ID_CAT,
+          ID_EST,
+          ID_DEP,
+          ID_UBI,
+          FEC_REGISTRO
+        ) VALUES (
+          :1, :2, :3, :4, :5, :6, :7, :8, 1, :9, :10, :11, :12, SYSDATE
+        )`,
+        [
+          nextId,
+          createDto.nomArt,
+          createDto.desArt ?? null,
+          createDto.serArt ?? null,
+          createDto.marArt ?? null,
+          createDto.modArt ?? null,
+          createDto.canArt,
+          createDto.valArt,
+          createDto.idCat,
+          createDto.idEst,
+          createDto.idDep ?? null,
+          createDto.idUbi ?? null,
+        ],
+      );
+
+      return await this.findOne(nextId);
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException ||
+        error instanceof ConflictException
+      ) {
+        throw error;
+      }
+
+      this.logger.error(error);
+      throw new BadRequestException(
+        'Error al crear el artículo en la base de datos',
+      );
+    }
+  }
+
+  async update(id: number, updateDto: UpdateArticuloDto): Promise<ArticuloOrm> {
+    try {
+      const current: any = await this.findOne(id);
+      const idCat = updateDto.idCat ?? current.idCat;
+      const idEst = updateDto.idEst ?? current.idEst;
+      const serArt = updateDto.serArt ?? current.serArt;
+
+      await this.validateCategoriaExists(idCat);
+      await this.validateEstadoArticulo(idEst);
+      await this.validateUniqueSerie(serArt, id);
+
+      await this.articuloRepository.query(
+        `UPDATE ARTICULO
+        SET
+          NOM_ART = :1,
+          DES_ART = :2,
+          SER_ART = :3,
+          MAR_ART = :4,
+          MOD_ART = :5,
+          CAN_ART = :6,
+          VAL_ART = :7,
+          ID_CAT = :8,
+          ID_EST = :9,
+          ID_DEP = :10,
+          ID_UBI = :11,
+          FEC_ACTUALIZACION = SYSDATE
+        WHERE ID_ART = :12
+          AND EST_ART = 1`,
+        [
+          updateDto.nomArt ?? current.nomArt,
+          updateDto.desArt ?? current.desArt,
+          serArt ?? null,
+          updateDto.marArt ?? current.marArt,
+          updateDto.modArt ?? current.modArt,
+          updateDto.canArt ?? current.canArt,
+          updateDto.valArt ?? current.valArt,
+          idCat,
+          idEst,
+          updateDto.idDep ?? current.idDep,
+          updateDto.idUbi ?? current.idUbi,
+          id,
+        ],
+      );
+
+      return await this.findOne(id);
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException ||
+        error instanceof ConflictException
+      ) {
+        throw error;
+      }
+
+      this.logger.error(error);
+      throw new BadRequestException('Error al actualizar artículo');
+    }
+  }
+
+  async delete(id: number): Promise<{ message: string }> {
+    try {
+      await this.findOne(id);
+
+      await this.articuloRepository.query(
+        `UPDATE ARTICULO
+        SET EST_ART = 0,
+            FEC_ACTUALIZACION = SYSDATE
+        WHERE ID_ART = :1`,
+        [id],
+      );
+
+      return {
+        message: `Artículo ${id} eliminado correctamente`,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      this.logger.error(error);
+      throw new BadRequestException('Error al eliminar artículo');
+    }
+  }
+
+  private async getNextId(): Promise<number> {
+    const result = await this.articuloRepository.query(
+      'SELECT SEQ_ARTICULO.NEXTVAL "nextId" FROM dual',
+    );
+    return result[0].nextId;
+  }
+
+  private async validateUniqueSerie(serArt?: string | null, ignoreId?: number) {
+    if (!serArt) {
+      return;
+    }
 
     const result = await this.articuloRepository.query(
-      `SELECT * FROM ARTICULO WHERE ID_ART = :1`,
-      [id],
+      `SELECT ID_ART
+      FROM ARTICULO
+      WHERE UPPER(SER_ART) = UPPER(:1)
+        AND EST_ART = 1
+        AND (:2 IS NULL OR ID_ART <> :2)`,
+      [serArt, ignoreId ?? null],
+    );
+
+    if (result.length > 0) {
+      throw new ConflictException('Ya existe un artículo con ese número de serie');
+    }
+  }
+
+  private async validateCategoriaExists(idCat: number) {
+    const result = await this.articuloRepository.query(
+      'SELECT ID_CAT FROM CATEGORIA WHERE ID_CAT = :1',
+      [idCat],
     );
 
     if (result.length === 0) {
-      throw new NotFoundException(
-        `Artículo con ID ${id} no encontrado`,
+      throw new BadRequestException(`La categoría con ID ${idCat} no existe`);
+    }
+  }
+
+  private async validateEstadoArticulo(idEst: number) {
+    const result = await this.articuloRepository.query(
+      `SELECT ID_EST
+      FROM ESTADO
+      WHERE ID_EST = :1
+        AND UPPER(TIPO_EST) = 'ARTICULO'`,
+      [idEst],
+    );
+
+    if (result.length === 0) {
+      throw new BadRequestException(
+        `El estado con ID ${idEst} no existe o no pertenece a ARTICULO`,
       );
     }
-
-    return result[0];
-
-  } catch (error) {
-
-    this.logger.error(error);
-
-    throw new BadRequestException(
-      'Error al buscar artículo',
-    );
   }
-}
-  /**
-   * Crear un nuevo artículo
-   * @param createDto Datos para crear el artículo
-   * @returns Artículo creado
-   */
- async create(createDto: CreateArticuloDto): Promise<ArticuloOrm> {
-  try {
-    this.logger.debug('Creando nuevo artículo:');
-    this.logger.debug(createDto.nomArt);
-
-    // Obtener siguiente ID desde Oracle SEQUENCE
-    const result = await this.articuloRepository.query(
-      `SELECT SEQ_ARTICULO.NEXTVAL as ID FROM dual`
-    );
-
-    const nextId = result[0].ID;
-
-    const articulo = this.articuloRepository.create({
-      idArt: nextId,
-      nomArt: createDto.nomArt,
-      desArt: createDto.desArt,
-      serArt: createDto.serArt,
-      marArt: createDto.marArt,
-      modArt: createDto.modArt,
-      canArt: createDto.canArt,
-      valArt: createDto.valArt,
-      estArt: 1,
-      idCat: createDto.idCat,
-      idEst: createDto.idEst,
-      idDep: createDto.idDep,
-      idUbi: createDto.idUbi,
-      fecRegistro: new Date(),
-    });
-
-    return await this.articuloRepository.save(articulo);
-
-  } catch (error) {
-    this.logger.error('Error al crear artículo:');
-    this.logger.error(error);
-
-    throw new BadRequestException(
-      'Error al crear el artículo en la base de datos',
-    );
-  }
-}
-
-  /**
-   * Actualizar un artículo existente
-   * @param id ID del artículo
-   * @param updateDto Datos a actualizar
-   * @returns Artículo actualizado
-   */
- async update(
-  id: number,
-  updateDto: UpdateArticuloDto,
-): Promise<any> {
-
-  try {
-
-    await this.findOne(id);
-
-    await this.articuloRepository.query(
-      `
-      UPDATE ARTICULO
-      SET
-        NOM_ART = :1,
-        DES_ART = :2,
-        SER_ART = :3,
-        MAR_ART = :4,
-        MOD_ART = :5,
-        CAN_ART = :6,
-        VAL_ART = :7,
-        ID_CAT = :8,
-        ID_EST = :9,
-        ID_DEP = :10,
-        ID_UBI = :11,
-        FEC_ACTUALIZACION = SYSDATE
-      WHERE ID_ART = :12
-      `,
-      [
-        updateDto.nomArt,
-        updateDto.desArt,
-        updateDto.serArt,
-        updateDto.marArt,
-        updateDto.modArt,
-        updateDto.canArt,
-        updateDto.valArt,
-        updateDto.idCat,
-        updateDto.idEst,
-        updateDto.idDep,
-        updateDto.idUbi,
-        id,
-      ],
-    );
-
-    return await this.findOne(id);
-
-  } catch (error) {
-
-    this.logger.error(error);
-
-    throw new BadRequestException(
-      'Error al actualizar artículo',
-    );
-  }
-}
-  /**
-   * Eliminar (desactivar) un artículo
-   * @param id ID del artículo
-   * @returns Mensaje de confirmación
-   */
- async delete(id: number): Promise<{ message: string }> {
-
-  try {
-
-    await this.findOne(id);
-
-    await this.articuloRepository.query(
-      `DELETE FROM ARTICULO WHERE ID_ART = :1`,
-      [id],
-    );
-
-    return {
-      message: `Artículo ${id} eliminado correctamente`,
-    };
-
-  } catch (error) {
-
-    this.logger.error(error);
-
-    throw new BadRequestException(
-      'Error al eliminar artículo',
-    );
-  }
-}
-  /**
-   * Obtener artículos por categoría
-   * @param categoriaId ID de la categoría
-   * @returns Lista de artículos de la categoría
-   
-  async findByCategoria(categoriaId: number): Promise<ArticuloOrm[]> {
-    this.logger.debug(`Buscando artículos de categoría: ${categoriaId}`);
-    return await this.articuloRepository.find({
-      where: { idCat: categoriaId, estArt: 1 },
-      order: { nomArt: 'ASC' },
-    });
-  }
-
-  /**
-   * Obtener el total de artículos
-   * @returns Total de artículos activos
-   
-  async getTotal(): Promise<{ total: number }> {
-    const total = await this.articuloRepository.count({
-      where: { estArt: 1 },
-    });
-    return { total };
-  }*/
 }
