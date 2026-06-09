@@ -3,9 +3,9 @@ import { IsString, IsNotEmpty } from 'class-validator';
 export class LoginDto {
   @IsString({ message: 'El identificador debe ser una cadena de texto' })
   @IsNotEmpty({ message: 'El usuario o correo electrónico es obligatorio' })
-  identifier: string; // Puede ser usuLogin o corUsr
+  identifier!: string; // Puede ser usuLogin o corUsr
 
   @IsString({ message: 'La contraseña debe ser una cadena de texto' })
   @IsNotEmpty({ message: 'La contraseña es obligatoria' })
-  password: string;
+  password!: string;
 }
