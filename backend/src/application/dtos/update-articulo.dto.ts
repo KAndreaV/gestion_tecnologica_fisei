@@ -1,4 +1,5 @@
 import {
+  IsNotEmpty,
   IsString,
   IsNumber,
   IsOptional,
@@ -55,6 +56,7 @@ export class UpdateArticuloDto {
 
   @IsNumber()
   @IsOptional()
+  @IsNotEmpty({ message: 'La categoría no puede estar vacía' })
   idCat?: number;
 
   @IsNumber()

@@ -5,6 +5,10 @@ import { PrestamoOrm } from '../orm/entities/prestamo.entity';
 import { MovimientoOrm } from '../orm/entities/movimiento.entity';
 import { AuditoriaOrm } from '../orm/entities/auditoria.entity';
 import { NotificacionOrm } from '../orm/entities/notificacion.entity';
+import { CategoriaOrm } from '../orm/entities/categoria.entity';
+import { DepartamentoOrm } from '../orm/entities/departamento.entity';
+import { EstadoOrm } from '../orm/entities/estado.entity';
+import { UbicacionOrm } from '../orm/entities/ubicacion.entity';
 import { Logger } from '@nestjs/common';
 
 const logger = new Logger('DatabaseProvider');
@@ -23,13 +27,7 @@ export const databaseProvider = {
       connectString,
       username: configService.get<string>('ORACLE_USER') || 'gestionfisei',
       password: configService.get<string>('ORACLE_PASSWORD') || 'gestionfisei',
-      entities: [
-        ArticuloOrm,
-        PrestamoOrm,
-        MovimientoOrm,
-        AuditoriaOrm,
-        NotificacionOrm,
-      ],
+      entities: [ArticuloOrm],
       synchronize: false,
       logging: false,
     } as any);

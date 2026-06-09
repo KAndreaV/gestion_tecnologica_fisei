@@ -9,6 +9,13 @@ import { PrestamoOrm } from '../orm/entities/prestamo.entity';
 import { MovimientoOrm } from '../orm/entities/movimiento.entity';
 import { AuditoriaOrm } from '../orm/entities/auditoria.entity';
 import { NotificacionOrm } from '../orm/entities/notificacion.entity';
+<<<<<<< HEAD
+import { CategoriaOrm } from '../orm/entities/categoria.entity';
+import { DepartamentoOrm } from '../orm/entities/departamento.entity';
+import { EstadoOrm } from '../orm/entities/estado.entity';
+import { UbicacionOrm } from '../orm/entities/ubicacion.entity';
+=======
+>>>>>>> develop
 >>>>>>> develop
 
 const logger = new Logger('DatabaseModule');
@@ -34,6 +41,9 @@ const logger = new Logger('DatabaseModule');
           username: configService.get<string>('ORACLE_USER') || 'gestionfisei',
           password: configService.get<string>('ORACLE_PASSWORD') || 'gestionfisei',
 <<<<<<< HEAD
+          entities: [ArticuloOrm],
+=======
+<<<<<<< HEAD
           entities: [ArticuloOrm, UsuarioOrm],
 =======
           entities: [
@@ -43,6 +53,7 @@ const logger = new Logger('DatabaseModule');
             AuditoriaOrm,
             NotificacionOrm,
           ],
+>>>>>>> develop
 >>>>>>> develop
           synchronize: false,
           logging: false,

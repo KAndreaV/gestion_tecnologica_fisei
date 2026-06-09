@@ -5,6 +5,7 @@ backend/.env
 
 # Frontend
 frontend/node_modules
+frontend/.next
 frontend/www
 frontend/dist
 

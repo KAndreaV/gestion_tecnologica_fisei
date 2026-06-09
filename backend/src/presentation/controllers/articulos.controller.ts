@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Put,
   Delete,
   Param,
@@ -70,8 +71,9 @@ export class ArticulosController {
   }
 
   // =========================================
-  // PUT
+  // PUT / PATCH
   // =========================================
+  @Patch(':id')
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   async update(
