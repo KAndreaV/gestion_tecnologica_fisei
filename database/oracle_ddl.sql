@@ -192,12 +192,12 @@ CREATE TABLE prestamo (
 );
 
 CREATE TABLE detalle_prestamo (
-  id_pre       NUMBER NOT NULL,
+  id_pres      NUMBER NOT NULL,
   id_art       NUMBER NOT NULL,
   can_pre      NUMBER DEFAULT 1 NOT NULL,
-  CONSTRAINT pk_detalle_prestamo PRIMARY KEY (id_pre, id_art),
+  CONSTRAINT pk_detalle_prestamo PRIMARY KEY (id_pres, id_art),
   CONSTRAINT ck_detalle_prestamo_cantidad CHECK (can_pre > 0),
-  CONSTRAINT fk_detalle_prestamo_prestamo FOREIGN KEY (id_pre)
+  CONSTRAINT fk_detalle_prestamo_prestamo FOREIGN KEY (id_pres)
     REFERENCES prestamo (id_pres)
     ON DELETE CASCADE,
   CONSTRAINT fk_detalle_prestamo_articulo FOREIGN KEY (id_art)

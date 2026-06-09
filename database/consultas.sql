@@ -69,7 +69,7 @@ SELECT
     e.nom_est AS estado_prestamo
 FROM prestamo p
 JOIN usuario u ON p.id_usr = u.id_usr
-JOIN detalle_prestamo dp ON p.id_pres = dp.id_pre
+JOIN detalle_prestamo dp ON p.id_pres = dp.id_pres
 JOIN articulo a ON dp.id_art = a.id_art
 JOIN estado e ON p.id_est = e.id_est
 WHERE e.nom_est = 'PENDIENTE';
@@ -131,3 +131,4 @@ FROM articulo
 WHERE val_art >= ALL (SELECT val_art FROM articulo);
 
 
+SELECT username FROM all_users WHERE username = 'GESTIONFISEI';

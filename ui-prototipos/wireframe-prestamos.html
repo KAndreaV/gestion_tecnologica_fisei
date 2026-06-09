@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wireframe - Prestamos</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: #f2f2f2; color: #111; }
+
+    .layout { min-height: 100vh; display: grid; grid-template-columns: 220px 1fr; }
+
+    .sidebar {
+      background: #fff;
+      border-right: 2px solid #111;
+      padding: 20px 14px;
+    }
+
+    .logo { height: 42px; border: 2px solid #111; background: #e8e8e8; margin-bottom: 24px; }
+    .nav-item { border: 2px solid #111; margin-bottom: 10px; padding: 10px; text-align: center; font-weight: 600; }
+
+    .main { display: grid; place-items: center; padding: 20px; }
+
+    .form-card {
+      width: min(760px, 100%);
+      border: 2px solid #111;
+      background: #fff;
+      padding: 18px;
+    }
+
+    .title {
+      border: 2px solid #111;
+      background: #f0f0f0;
+      padding: 10px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .field { margin-bottom: 14px; }
+
+    .label {
+      font-size: 14px;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .input {
+      border: 2px solid #111;
+      background: #fff;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+    }
+
+    .button {
+      margin-top: 12px;
+      border: 2px solid #111;
+      background: #e5e5e5;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { border-right: 0; border-bottom: 2px solid #111; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="logo"></div>
+      <div class="nav-item">Dashboard</div>
+      <div class="nav-item">Inventario</div>
+      <div class="nav-item">Prestamos</div>
+      <div class="nav-item">Usuarios</div>
+    </aside>
+
+    <main class="main">
+      <section class="form-card">
+        <div class="title">Formulario: Solicitud de Prestamo</div>
+
+        <div class="field">
+          <div class="label">Seleccionar Usuario</div>
+          <div class="input"></div>
+        </div>
+
+        <div class="field">
+          <div class="label">Seleccionar Articulo/Equipo</div>
+          <div class="input"></div>
+        </div>
+
+        <div class="field">
+          <div class="label">Fecha de devolucion</div>
+          <div class="input"></div>
+        </div>
+
+        <div class="button">Solicitar Prestamo</div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
