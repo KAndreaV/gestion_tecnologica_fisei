@@ -3,6 +3,9 @@
  * Thick mode es más compatible con versiones antiguas de Oracle Database
  */
 
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 let oracledb: any;
 
 try {
