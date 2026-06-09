@@ -82,8 +82,8 @@ INSERT INTO prestamo (
   2, SYSDATE, SYSDATE, NULL, 'Préstamo para proyecto de tesis', 1, 3, 3 -- ID_EST 3 = PRESTADO
 );
 
-INSERT INTO detalle_prestamo (id_pre, id_art, can_pre) VALUES (1, 1, 1);
-INSERT INTO detalle_prestamo (id_pre, id_art, can_pre) VALUES (2, 3, 1);
+INSERT INTO detalle_prestamo (id_pres, id_art, can_pre) VALUES (1, 1, 1);
+INSERT INTO detalle_prestamo (id_pres, id_art, can_pre) VALUES (2, 3, 1);
 
 INSERT INTO movimiento (
   id_mov, tip_mov, fec_mov, obs_mov, id_art, id_usr, id_ubi_ori, id_ubi_des

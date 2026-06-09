@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wireframe - Dashboard</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", sans-serif; background: #f2f2f2; color: #111; }
+
+    .layout {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+    }
+
+    .sidebar {
+      background: #ffffff;
+      border-right: 2px solid #111;
+      padding: 20px 14px;
+    }
+
+    .logo {
+      height: 42px;
+      border: 2px solid #111;
+      margin-bottom: 24px;
+      background: #e8e8e8;
+    }
+
+    .nav-item {
+      border: 2px solid #111;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #fff;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .main {
+      padding: 18px;
+    }
+
+    .title {
+      border: 2px solid #111;
+      background: #fff;
+      padding: 10px;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      border: 2px solid #111;
+      background: #fff;
+      padding: 14px;
+      min-height: 82px;
+    }
+
+    .card .label { font-size: 13px; margin-bottom: 12px; }
+    .card .value {
+      width: 60%;
+      height: 18px;
+      border: 2px solid #111;
+      background: #efefef;
+    }
+
+    .panel {
+      border: 2px solid #111;
+      background: #fff;
+      min-height: 350px;
+      padding: 12px;
+    }
+
+    .panel-title {
+      border: 2px solid #111;
+      background: #f0f0f0;
+      padding: 8px;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .row {
+      border: 1px solid #111;
+      background: #fafafa;
+      height: 34px;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { border-right: 0; border-bottom: 2px solid #111; }
+      .cards { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="logo"></div>
+      <div class="nav-item">Dashboard</div>
+      <div class="nav-item">Inventario</div>
+      <div class="nav-item">Prestamos</div>
+      <div class="nav-item">Usuarios</div>
+    </aside>
+
+    <main class="main">
+      <div class="title">Pantalla: Dashboard</div>
+
+      <section class="cards">
+        <article class="card">
+          <div class="label">Total de equipos</div>
+          <div class="value"></div>
+        </article>
+        <article class="card">
+          <div class="label">Disponibles</div>
+          <div class="value"></div>
+        </article>
+        <article class="card">
+          <div class="label">Prestados</div>
+          <div class="value"></div>
+        </article>
+        <article class="card">
+          <div class="label">En mantenimiento</div>
+          <div class="value"></div>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">Tabla: Actividades recientes</div>
+        <div class="row"></div>
+        <div class="row"></div>
+        <div class="row"></div>
+        <div class="row"></div>
+        <div class="row"></div>
+        <div class="row"></div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
