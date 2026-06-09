@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { TestController } from './presentation/test/test.controller';
 import { ArticulosModule } from './presentation/modules/articulos.module';
 import { DatabaseModule } from './infrastructure/database/database.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { DatabaseModule } from './infrastructure/database/database.module';
       envFilePath: '.env',
     }),
     DatabaseModule,
+    AuthModule,
     ArticulosModule,
   ],
   controllers: [AppController, TestController],

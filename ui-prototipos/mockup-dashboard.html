@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mockup - Dashboard</title>
+  <link rel="stylesheet" href="mockup-theme.css" />
+  <style>
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .metric {
+      padding: 14px;
+    }
+
+    .metric .metric-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      color: #d5def0;
+      font-size: 13px;
+    }
+
+    .metric .metric-head svg {
+      width: 18px;
+      height: 18px;
+      color: #efcf7f;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 28px;
+      margin-bottom: 4px;
+      color: #ffffff;
+    }
+
+    .metric span {
+      font-size: 12px;
+      color: #aec0dc;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .block-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 13px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .block-head h2 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .mini-list {
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .mini-item {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      color: #ecf1fb;
+    }
+
+    .mini-item small {
+      display: block;
+      color: #a9bddb;
+      margin-top: 3px;
+    }
+
+    @media (max-width: 1100px) {
+      .dashboard-grid {
+        grid-template-columns: repeat(2, minmax(140px, 1fr));
+      }
+
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M4 8.5 12 4l8 4.5v7L12 20l-8-4.5z" />
+            <path d="M12 4v16" />
+          </svg>
+        </div>
+        <div>
+          <h2>TechInventory</h2>
+          <p>Sistema de activos TI</p>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a class="nav-item active" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 13h8V3H3zM13 21h8v-8h-8zM13 3h8v6h-8zM3 21h8v-6H3z"/></svg>
+          Dashboard
+        </a>
+        <a class="nav-item" href="mockup-inventario.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          Inventario
+        </a>
+        <a class="nav-item" href="mockup-prestamos.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="m4 10 8 4 8-4"/></svg>
+          Prestamos
+        </a>
+        <a class="nav-item" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.7-3.2 4.2-4.8 8-4.8S18.3 16.8 20 20"/></svg>
+          Usuarios
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p>Operaciones hoy: 93</p>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="search-pill">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+            Buscar equipo, usuario o solicitud
+          </div>
+        </div>
+        <div class="topbar-right">
+          <span class="badge">Produccion</span>
+          <div class="user-chip"><span class="avatar">AP</span> Ana Perez</div>
+        </div>
+      </header>
+
+      <section class="section-title">
+        <h1>Panel ejecutivo</h1>
+        <p>Control diario del inventario, prestamos y mantenimiento con alertas en tiempo real.</p>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="surface metric">
+          <div class="metric-head">
+            Equipos totales
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5h18v12H3z"/><path d="M8 19h8"/></svg>
+          </div>
+          <strong>248</strong>
+          <span>+12 en este mes</span>
+        </article>
+        <article class="surface metric">
+          <div class="metric-head">
+            Disponibles
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 7 9 18l-5-5"/></svg>
+          </div>
+          <strong>173</strong>
+          <span>69.7% disponibilidad</span>
+        </article>
+        <article class="surface metric">
+          <div class="metric-head">
+            Prestados
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5h14v14H5z"/><path d="m9 10 2 2 4-4"/></svg>
+          </div>
+          <strong>51</strong>
+          <span>8 vencen hoy</span>
+        </article>
+        <article class="surface metric">
+          <div class="metric-head">
+            En mantenimiento
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 7 7 14"/><path d="m5 16 3 3"/><path d="m17 4 3 3"/><path d="M3 21 21 3"/></svg>
+          </div>
+          <strong>24</strong>
+          <span>5 con prioridad alta</span>
+        </article>
+      </section>
+
+      <section class="two-col">
+        <article class="surface">
+          <div class="block-head">
+            <h2>Actividad reciente</h2>
+            <button class="btn-secondary">Ver bitacora</button>
+          </div>
+          <div style="padding: 8px 10px 12px; overflow:auto;">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Hora</th>
+                  <th>Evento</th>
+                  <th>Equipo</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>08:30</td><td>Prestamo aprobado</td><td>LAP-144</td><td><span class="status-pill ok">Confirmado</span></td></tr>
+                <tr><td>09:12</td><td>Ingreso a taller</td><td>MON-077</td><td><span class="status-pill warn">Mantenimiento</span></td></tr>
+                <tr><td>10:01</td><td>Alta de equipo</td><td>TAB-012</td><td><span class="status-pill info">Inventariado</span></td></tr>
+                <tr><td>11:22</td><td>Devolucion registrada</td><td>LAP-131</td><td><span class="status-pill ok">Disponible</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="surface">
+          <div class="block-head">
+            <h2>Acciones clave</h2>
+          </div>
+          <div class="mini-list">
+            <div class="mini-item">
+              <div>
+                Registrar nuevo equipo
+                <small>Alta rapida con numero de serie</small>
+              </div>
+              <button class="btn-primary">Crear</button>
+            </div>
+            <div class="mini-item">
+              <div>
+                Programar mantenimiento
+                <small>Asignar tecnico y fecha</small>
+              </div>
+              <button class="btn-secondary">Programar</button>
+            </div>
+            <div class="mini-item">
+              <div>
+                Exportar reporte
+                <small>Inventario consolidado en PDF</small>
+              </div>
+              <button class="btn-secondary">Exportar</button>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

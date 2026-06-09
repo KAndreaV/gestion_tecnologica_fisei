@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+html,
+body{
+  min-height:100%;
+  font-family:Arial, sans-serif;
+  background:#050b18;
+  color:white;
+}
+
+button,
+input{
+  font:inherit;
+}

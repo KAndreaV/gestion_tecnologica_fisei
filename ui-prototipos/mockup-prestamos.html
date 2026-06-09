@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mockup - Prestamos</title>
+  <link rel="stylesheet" href="mockup-theme.css" />
+  <style>
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .loan-form {
+      padding: 14px;
+    }
+
+    .row {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr 1fr;
+      margin-bottom: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 13px;
+      color: #c4d2ea;
+      font-weight: 700;
+    }
+
+    .input {
+      min-height: 44px;
+      border-radius: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.07);
+      color: #e7eefb;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 14px;
+    }
+
+    .hint {
+      border: 1px dashed rgba(224, 187, 90, 0.48);
+      border-radius: 11px;
+      padding: 10px;
+      color: #ebd79f;
+      background: rgba(224, 187, 90, 0.09);
+      font-size: 13px;
+      margin: 8px 0 12px;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .summary {
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .summary h3 {
+      margin: 4px 0 8px;
+      font-size: 16px;
+    }
+
+    .summary-card {
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 10px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .summary-card strong {
+      font-size: 19px;
+      color: #fff;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .summary-card span {
+      color: #c7d4ea;
+      font-size: 13px;
+    }
+
+    @media (max-width: 1100px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .row {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M4 8.5 12 4l8 4.5v7L12 20l-8-4.5z" />
+            <path d="M12 4v16" />
+          </svg>
+        </div>
+        <div>
+          <h2>TechInventory</h2>
+          <p>Sistema de activos TI</p>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a class="nav-item" href="mockup-dashboard.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 13h8V3H3zM13 21h8v-8h-8zM13 3h8v6h-8zM3 21h8v-6H3z"/></svg>
+          Dashboard
+        </a>
+        <a class="nav-item" href="mockup-inventario.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          Inventario
+        </a>
+        <a class="nav-item active" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="m4 10 8 4 8-4"/></svg>
+          Prestamos
+        </a>
+        <a class="nav-item" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.7-3.2 4.2-4.8 8-4.8S18.3 16.8 20 20"/></svg>
+          Usuarios
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p>Prestamos activos: 51</p>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="search-pill">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+            Buscar solicitudes y prestamos
+          </div>
+        </div>
+        <div class="topbar-right">
+          <span class="badge">Modulo de prestamos</span>
+          <div class="user-chip"><span class="avatar">BL</span> Beatriz Leon</div>
+        </div>
+      </header>
+
+      <section class="section-title">
+        <h1>Registro de prestamo</h1>
+        <p>Formulario operativo para asignar equipos, fechas de retorno y responsable.</p>
+      </section>
+
+      <section class="grid">
+        <article class="surface loan-form">
+          <div class="row">
+            <div class="field">
+              <label>Usuario solicitante</label>
+              <div class="input">Buscar por nombre o documento...</div>
+            </div>
+            <div class="field">
+              <label>Tipo de solicitud</label>
+              <div class="input">Temporal / Permanente</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label>Equipo o activo</label>
+              <div class="input">LAP-144 - ThinkPad T14 Gen 3</div>
+            </div>
+            <div class="field">
+              <label>Area</label>
+              <div class="input">Operaciones / Finanzas / TI</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label>Fecha de entrega</label>
+              <div class="input">17/04/2026</div>
+            </div>
+            <div class="field">
+              <label>Fecha de devolucion</label>
+              <div class="input">24/04/2026</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Observaciones</label>
+            <div class="input" style="min-height: 76px; align-items: flex-start; padding-top: 10px;">Condiciones del equipo y accesorios incluidos...</div>
+          </div>
+
+          <div class="hint">Verificacion: el equipo seleccionado tiene disponibilidad inmediata y no presenta bloqueos administrativos.</div>
+
+          <div class="actions">
+            <button class="btn-secondary">Guardar borrador</button>
+            <button class="btn-primary">Confirmar prestamo</button>
+          </div>
+        </article>
+
+        <aside class="surface summary">
+          <h3>Resumen rapido</h3>
+          <div class="summary-card">
+            <strong>51</strong>
+            <span>Prestamos activos</span>
+          </div>
+          <div class="summary-card">
+            <strong>8</strong>
+            <span>Vencen hoy</span>
+          </div>
+          <div class="summary-card">
+            <strong>97%</strong>
+            <span>Tasa de devolucion a tiempo</span>
+          </div>
+          <div class="summary-card">
+            <strong>3</strong>
+            <span>Solicitudes pendientes de aprobacion</span>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

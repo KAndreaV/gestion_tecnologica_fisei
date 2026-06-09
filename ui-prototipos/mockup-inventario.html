@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mockup - Inventario</title>
+  <link rel="stylesheet" href="mockup-theme.css" />
+  <style>
+    .inventory-toolbar {
+      margin: 14px 0;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 1.9fr repeat(3, 1fr) auto;
+      gap: 10px;
+    }
+
+    .field {
+      min-height: 42px;
+      border-radius: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.07);
+      color: #dde6f7;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 14px;
+    }
+
+    .table-wrap {
+      margin-top: 12px;
+      overflow: auto;
+    }
+
+    .table {
+      min-width: 940px;
+    }
+
+    .actions-col {
+      display: flex;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.08);
+      color: #f4f7fd;
+      display: grid;
+      place-items: center;
+    }
+
+    .icon-btn svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    @media (max-width: 1180px) {
+      .inventory-toolbar {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M4 8.5 12 4l8 4.5v7L12 20l-8-4.5z" />
+            <path d="M12 4v16" />
+          </svg>
+        </div>
+        <div>
+          <h2>TechInventory</h2>
+          <p>Sistema de activos TI</p>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a class="nav-item" href="mockup-dashboard.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 13h8V3H3zM13 21h8v-8h-8zM13 3h8v6h-8zM3 21h8v-6H3z"/></svg>
+          Dashboard
+        </a>
+        <a class="nav-item active" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          Inventario
+        </a>
+        <a class="nav-item" href="mockup-prestamos.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="m4 10 8 4 8-4"/></svg>
+          Prestamos
+        </a>
+        <a class="nav-item" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.7-3.2 4.2-4.8 8-4.8S18.3 16.8 20 20"/></svg>
+          Usuarios
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p>Ultima sincronizacion: 11:42</p>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="search-pill">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+            Buscar por codigo, serial, categoria
+          </div>
+        </div>
+        <div class="topbar-right">
+          <span class="badge">Inventario maestro</span>
+          <div class="user-chip"><span class="avatar">CR</span> Carlos Ruiz</div>
+        </div>
+      </header>
+
+      <section class="section-title">
+        <h1>Gestion de inventario</h1>
+        <p>Control de stock, estados de disponibilidad y trazabilidad por ubicacion.</p>
+      </section>
+
+      <section class="surface inventory-toolbar">
+        <div class="field">Buscar activo...</div>
+        <div class="field">Categoria</div>
+        <div class="field">Ubicacion</div>
+        <div class="field">Estado</div>
+        <button class="btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Nuevo equipo
+        </button>
+      </section>
+
+      <section class="surface table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Codigo</th>
+              <th>Descripcion</th>
+              <th>Categoria</th>
+              <th>Estado</th>
+              <th>Ubicacion</th>
+              <th>Responsable</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>LAP-144</td>
+              <td>ThinkPad T14 Gen 3</td>
+              <td>Laptop</td>
+              <td><span class="status-pill info">Prestado</span></td>
+              <td>Sede Norte</td>
+              <td>Ana Perez</td>
+              <td>
+                <div class="actions-col">
+                  <button class="icon-btn" aria-label="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 20 4-.8L19 8.2 15.8 5 4.8 16z"/></svg></button>
+                  <button class="icon-btn" aria-label="Historial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg></button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>MON-077</td>
+              <td>Dell UltraSharp 27</td>
+              <td>Monitor</td>
+              <td><span class="status-pill warn">Mantenimiento</span></td>
+              <td>Taller TI</td>
+              <td>Soporte</td>
+              <td>
+                <div class="actions-col">
+                  <button class="icon-btn" aria-label="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 20 4-.8L19 8.2 15.8 5 4.8 16z"/></svg></button>
+                  <button class="icon-btn" aria-label="Historial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg></button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>TAB-012</td>
+              <td>iPad Air 5</td>
+              <td>Tablet</td>
+              <td><span class="status-pill ok">Disponible</span></td>
+              <td>Almacen Central</td>
+              <td>Beatriz Leon</td>
+              <td>
+                <div class="actions-col">
+                  <button class="icon-btn" aria-label="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 20 4-.8L19 8.2 15.8 5 4.8 16z"/></svg></button>
+                  <button class="icon-btn" aria-label="Historial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg></button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

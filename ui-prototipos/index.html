@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prototipos - Inventario Tecnologico</title>
+  <style>
+    :root {
+      --bg: #f6f8fa;
+      --panel: #ffffff;
+      --text: #13212e;
+      --muted: #5f6f7f;
+      --brand: #0f766e;
+      --line: #d7e1ea;
+      --accent: #f97316;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", "IBM Plex Sans", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 10% 5%, #dff7f3 0%, rgba(223, 247, 243, 0) 35%),
+        radial-gradient(circle at 90% 0%, #ffe8d5 0%, rgba(255, 232, 213, 0) 30%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 12px 36px rgba(19, 33, 46, 0.08);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      letter-spacing: 0.5px;
+    }
+
+    p {
+      margin: 0 0 20px;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px;
+    }
+
+    a.card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbfd 100%);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    a.card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 24px rgba(19, 33, 46, 0.1);
+      border-color: #a9c4d8;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #c8dae7;
+      color: var(--brand);
+      margin-bottom: 10px;
+    }
+
+    .title {
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Prototipos de Inventario Tecnologico</h1>
+    <p>Selecciona una pantalla para abrir su version de wireframe o mockup.</p>
+
+    <section class="grid">
+      <a class="card" href="wireframe-dashboard.html">
+        <span class="tag">Wireframe</span>
+        <div class="title">Dashboard</div>
+        <div class="hint">Panel de control en blanco, negro y gris.</div>
+      </a>
+
+      <a class="card" href="wireframe-inventario.html">
+        <span class="tag">Wireframe</span>
+        <div class="title">Inventario</div>
+        <div class="hint">Busqueda, filtros y tabla de equipos.</div>
+      </a>
+
+      <a class="card" href="wireframe-prestamos.html">
+        <span class="tag">Wireframe</span>
+        <div class="title">Prestamos</div>
+        <div class="hint">Formulario de solicitud de prestamo.</div>
+      </a>
+
+      <a class="card" href="mockup-dashboard.html">
+        <span class="tag">Mockup</span>
+        <div class="title">Dashboard</div>
+        <div class="hint">Version visual con estilo moderno del sistema.</div>
+      </a>
+
+      <a class="card" href="mockup-inventario.html">
+        <span class="tag">Mockup</span>
+        <div class="title">Inventario</div>
+        <div class="hint">Tabla avanzada, filtros y estados visuales.</div>
+      </a>
+
+      <a class="card" href="mockup-prestamos.html">
+        <span class="tag">Mockup</span>
+        <div class="title">Prestamos</div>
+        <div class="hint">Formulario guiado para solicitar equipos.</div>
+      </a>
+    </section>
+
+    <div class="footer">
+      <span class="dot"></span>
+      Proyecto base de gestion de inventario tecnologico
+    </div>
+  </main>
+</body>
+</html>
