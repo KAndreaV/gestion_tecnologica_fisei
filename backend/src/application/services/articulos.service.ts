@@ -23,60 +23,40 @@ export class ArticulosService {
   }
 
   async findAll(): Promise<ArticuloOrm[]> {
-    try {
-      return await this.articuloRepository.query(
-        `SELECT
-          ID_ART "idArt",
-          NOM_ART "nomArt",
-          DES_ART "desArt",
-          SER_ART "serArt",
-          MAR_ART "marArt",
-          MOD_ART "modArt",
-          CAN_ART "canArt",
-          VAL_ART "valArt",
-          EST_ART "estArt",
-          ID_CAT "idCat",
-          ID_EST "idEst",
-          ID_DEP "idDep",
-          ID_UBI "idUbi",
-          FEC_REGISTRO "fecRegistro",
-          FEC_ACTUALIZACION "fecActualizacion"
-        FROM ARTICULO
-        WHERE EST_ART = 1
-        ORDER BY NOM_ART`,
-      );
-    } catch (error) {
-      this.logger.error(error);
-      throw new BadRequestException(
-        'Error al obtener los artículos de la base de datos',
-      );
-    }
-  }
+  this.logger.debug('Buscando todos los artículos');
 
-  async findOne(id: number): Promise<ArticuloOrm> {
-    try {
-      const result = await this.articuloRepository.query(
-        `SELECT
-          ID_ART "idArt",
-          NOM_ART "nomArt",
-          DES_ART "desArt",
-          SER_ART "serArt",
-          MAR_ART "marArt",
-          MOD_ART "modArt",
-          CAN_ART "canArt",
-          VAL_ART "valArt",
-          EST_ART "estArt",
-          ID_CAT "idCat",
-          ID_EST "idEst",
-          ID_DEP "idDep",
-          ID_UBI "idUbi",
-          FEC_REGISTRO "fecRegistro",
-          FEC_ACTUALIZACION "fecActualizacion"
-        FROM ARTICULO
-        WHERE ID_ART = :1
-          AND EST_ART = 1`,
-        [id],
-      );
+  try {
+
+    const data = await this.articuloRepository.query(
+      'SELECT * FROM ARTICULO',
+    );
+
+    console.log('DATOS ORACLE:', data);
+
+    return data;
+
+  } catch (error) {
+
+    console.error(error);
+
+    throw new BadRequestException(
+      'Error al obtener los artículos de la base de datos',
+    );
+  }
+}
+  /**
+   * Obtener un artículo por ID
+   * @param id ID del artículo
+   * @returns Artículo encontrado
+   */
+ async findOne(id: number): Promise<ArticuloOrm> {
+
+  try {
+
+    const result = await this.articuloRepository.query(
+      `SELECT * FROM ARTICULO WHERE ID_ART = :1`,
+      [id],
+    );
 
       if (result.length === 0) {
         throw new NotFoundException(`Artículo con ID ${id} no encontrado`);
@@ -164,38 +144,39 @@ export class ArticulosService {
       await this.validateEstadoArticulo(idEst);
       await this.validateUniqueSerie(serArt, id);
 
-      await this.articuloRepository.query(
-        `UPDATE ARTICULO
-        SET
-          NOM_ART = :1,
-          DES_ART = :2,
-          SER_ART = :3,
-          MAR_ART = :4,
-          MOD_ART = :5,
-          CAN_ART = :6,
-          VAL_ART = :7,
-          ID_CAT = :8,
-          ID_EST = :9,
-          ID_DEP = :10,
-          ID_UBI = :11,
-          FEC_ACTUALIZACION = SYSDATE
-        WHERE ID_ART = :12
-          AND EST_ART = 1`,
-        [
-          updateDto.nomArt ?? current.nomArt,
-          updateDto.desArt ?? current.desArt,
-          serArt ?? null,
-          updateDto.marArt ?? current.marArt,
-          updateDto.modArt ?? current.modArt,
-          updateDto.canArt ?? current.canArt,
-          updateDto.valArt ?? current.valArt,
-          idCat,
-          idEst,
-          updateDto.idDep ?? current.idDep,
-          updateDto.idUbi ?? current.idUbi,
-          id,
-        ],
-      );
+    await this.articuloRepository.query(
+      `
+      UPDATE ARTICULO
+      SET
+        NOM_ART = :1,
+        DES_ART = :2,
+        SER_ART = :3,
+        MAR_ART = :4,
+        MOD_ART = :5,
+        CAN_ART = :6,
+        VAL_ART = :7,
+        ID_CAT = :8,
+        ID_EST = :9,
+        ID_DEP = :10,
+        ID_UBI = :11,
+        FEC_ACTUALIZACION = SYSDATE
+      WHERE ID_ART = :12
+      `,
+      [
+        updateDto.nomArt,
+        updateDto.desArt,
+        updateDto.serArt,
+        updateDto.marArt,
+        updateDto.modArt,
+        updateDto.canArt,
+        updateDto.valArt,
+        updateDto.idCat,
+        updateDto.idEst,
+        updateDto.idDep,
+        updateDto.idUbi,
+        id,
+      ],
+    );
 
       return await this.findOne(id);
     } catch (error) {
@@ -216,13 +197,10 @@ export class ArticulosService {
     try {
       await this.findOne(id);
 
-      await this.articuloRepository.query(
-        `UPDATE ARTICULO
-        SET EST_ART = 0,
-            FEC_ACTUALIZACION = SYSDATE
-        WHERE ID_ART = :1`,
-        [id],
-      );
+    await this.articuloRepository.query(
+      `DELETE FROM ARTICULO WHERE ID_ART = :1`,
+      [id],
+    );
 
       return {
         message: `Artículo ${id} eliminado correctamente`,

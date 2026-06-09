@@ -108,11 +108,4 @@ idArt!: number;
     type: 'date',
   })
   fecRegistro!: Date;
-
-  @Column({
-    name: 'FEC_ACTUALIZACION',
-    type: 'date',
-    nullable: true,
-  })
-  fecActualizacion?: Date;
 }
