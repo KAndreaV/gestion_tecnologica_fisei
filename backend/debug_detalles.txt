@@ -1,0 +1,7 @@
+BadRequestException: Error al buscar prestamo: ORA-00933: SQL command not properly ended
+Help: https://docs.oracle.com/error-help/db/ora-00933/
+    at PrestamosService.findOne (C:\gestion_tecnologica_fisei\backend\src\application\services\prestamos.service.ts:238:13)
+    at async PrestamosService.getDetalles (C:\gestion_tecnologica_fisei\backend\src\application\services\prestamos.service.ts:638:7)
+    at async PrestamosController.getDetalles (C:\gestion_tecnologica_fisei\backend\src\presentation\controllers\prestamos.controller.ts:99:18)
+    at async C:\gestion_tecnologica_fisei\backend\node_modules\@nestjs\core\router\router-execution-context.js:46:28
+    at async C:\gestion_tecnologica_fisei\backend\node_modules\@nestjs\core\router\router-proxy.js:9:17

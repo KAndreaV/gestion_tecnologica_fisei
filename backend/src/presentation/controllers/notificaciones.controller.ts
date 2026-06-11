@@ -5,10 +5,13 @@ import {
   HttpStatus,
   Param,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { NotificacionesService } from '../../application/services/notificaciones.service';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 
 @Controller('notificaciones')
+@UseGuards(JwtAuthGuard)
 export class NotificacionesController {
   constructor(private readonly notificacionesService: NotificacionesService) {}
 
@@ -35,3 +38,4 @@ export class NotificacionesController {
     };
   }
 }
+

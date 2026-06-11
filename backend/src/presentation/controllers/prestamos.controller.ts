@@ -9,13 +9,18 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateDetallePrestamoDto } from '../../application/dtos/create-detalle-prestamo.dto';
 import { CreatePrestamoDto } from '../../application/dtos/create-prestamo.dto';
 import { UpdatePrestamoDto } from '../../application/dtos/update-prestamo.dto';
 import { PrestamosService } from '../../application/services/prestamos.service';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { RolesGuard } from '../../auth/roles.guard';
+import { Roles } from '../../auth/roles.decorator';
 
 @Controller('prestamos')
+@UseGuards(JwtAuthGuard)
 export class PrestamosController {
   constructor(private readonly prestamosService: PrestamosService) {}
 
@@ -52,6 +57,8 @@ export class PrestamosController {
   // POST
   // =========================================
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles(1, 2, 3, 4) // Administradores y Docentes
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createDto: CreatePrestamoDto) {
     const data = await this.prestamosService.create(createDto);
@@ -67,6 +74,8 @@ export class PrestamosController {
   // POST DETALLE
   // =========================================
   @Post(':id/detalles')
+  @UseGuards(RolesGuard)
+  @Roles(1, 2, 3, 4) // Administradores y Docentes
   @HttpCode(HttpStatus.CREATED)
   async addDetalle(
     @Param('id', ParseIntPipe) id: number,
@@ -100,6 +109,8 @@ export class PrestamosController {
   // PUT
   // =========================================
   @Put(':id')
+  @UseGuards(RolesGuard)
+  @Roles(1, 2, 3, 4) // Administradores y Docentes
   @HttpCode(HttpStatus.OK)
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -118,6 +129,8 @@ export class PrestamosController {
   // PUT DETALLE
   // =========================================
   @Put(':id/detalles/:idArt')
+  @UseGuards(RolesGuard)
+  @Roles(1, 2, 3, 4) // Administradores y Docentes
   @HttpCode(HttpStatus.OK)
   async updateDetalle(
     @Param('id', ParseIntPipe) id: number,
@@ -141,6 +154,8 @@ export class PrestamosController {
   // DELETE
   // =========================================
   @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(1, 2, 3, 4) // Administradores y Docentes
   @HttpCode(HttpStatus.OK)
   async delete(@Param('id', ParseIntPipe) id: number) {
     await this.prestamosService.delete(id);
@@ -155,6 +170,8 @@ export class PrestamosController {
   // DELETE DETALLE
   // =========================================
   @Delete(':id/detalles/:idArt')
+  @UseGuards(RolesGuard)
+  @Roles(1, 2, 3, 4) // Administradores y Docentes
   @HttpCode(HttpStatus.OK)
   async removeDetalle(
     @Param('id', ParseIntPipe) id: number,
@@ -168,3 +185,4 @@ export class PrestamosController {
     };
   }
 }
+

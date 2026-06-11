@@ -15,8 +15,9 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return API information', () => {
+      const response = appController.getHome() as any;
+      expect(response.message).toBe('Backend funcionando correctamente');
     });
   });
 });

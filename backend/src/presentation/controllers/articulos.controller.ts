@@ -10,13 +10,18 @@ import {
   HttpCode,
   HttpStatus,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 
 import { ArticulosService } from '../../application/services/articulos.service';
 import { CreateArticuloDto } from '../../application/dtos/create-articulo.dto';
 import { UpdateArticuloDto } from '../../application/dtos/update-articulo.dto';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { RolesGuard } from '../../auth/roles.guard';
+import { Roles } from '../../auth/roles.decorator';
 
 @Controller('articulos')
+@UseGuards(JwtAuthGuard)
 export class ArticulosController {
   constructor(
     private readonly articulosService: ArticulosService,
@@ -57,6 +62,8 @@ export class ArticulosController {
   // POST
   // =========================================
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() createDto: CreateArticuloDto,
@@ -73,10 +80,11 @@ export class ArticulosController {
   // =========================================
   // PUT / PATCH
   // =========================================
-  @Patch(':id')
   @Put(':id')
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
   @HttpCode(HttpStatus.OK)
-  async update(
+  async updatePut(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateArticuloDto,
   ) {
@@ -89,10 +97,30 @@ export class ArticulosController {
     };
   }
 
+  @Patch(':id')
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
+  @HttpCode(HttpStatus.OK)
+  async updatePatch(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateDto: UpdateArticuloDto,
+  ) {
+    const data = await this.articulosService.update(id, updateDto);
+
+    return {
+      success: true,
+      message: 'Artículo actualizado correctamente',
+      data,
+    };
+  }
+
+
   // =========================================
   // DELETE
   // =========================================
   @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
   @HttpCode(HttpStatus.OK)
   async delete(
     @Param('id', ParseIntPipe) id: number,

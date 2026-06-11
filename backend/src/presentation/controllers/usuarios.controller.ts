@@ -7,12 +7,17 @@ import {
   Put,
   Delete,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { UsuariosService } from '../../application/services/usuarios.service';
 import { CreateUsuarioDto } from '../../application/dtos/create-usuario.dto';
 import { UpdateUsuarioDto } from '../../application/dtos/update-usuario.dto';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { RolesGuard } from '../../auth/roles.guard';
+import { Roles } from '../../auth/roles.decorator';
 
 @Controller('usuarios')
+@UseGuards(JwtAuthGuard)
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
@@ -38,6 +43,8 @@ export class UsuariosController {
   }
 
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
   async create(@Body() createUsuarioDto: CreateUsuarioDto) {
     const data = await this.usuariosService.create(createUsuarioDto);
     return {
@@ -48,6 +55,8 @@ export class UsuariosController {
   }
 
   @Put(':id')
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUsuarioDto: UpdateUsuarioDto,
@@ -61,6 +70,8 @@ export class UsuariosController {
   }
 
   @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
   async delete(@Param('id', ParseIntPipe) id: number) {
     const result = await this.usuariosService.delete(id);
     return {
@@ -69,3 +80,4 @@ export class UsuariosController {
     };
   }
 }
+

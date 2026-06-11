@@ -143,8 +143,7 @@ export class PrestamosService {
     await manager.query(
       `
       UPDATE ARTICULO
-      SET CAN_ART = CAN_ART - :1,
-          FEC_ACTUALIZACION = SYSDATE
+      SET CAN_ART = CAN_ART - :1
       WHERE ID_ART = :2
         AND CAN_ART >= :1
       `,
@@ -160,8 +159,7 @@ export class PrestamosService {
     await manager.query(
       `
       UPDATE ARTICULO
-      SET CAN_ART = CAN_ART + :1,
-          FEC_ACTUALIZACION = SYSDATE
+      SET CAN_ART = CAN_ART + :1
       WHERE ID_ART = :2
       `,
       [cantidad, articuloId],
@@ -202,9 +200,9 @@ export class PrestamosService {
     this.logger.debug('Buscando todos los prestamos');
 
     try {
-      return await this.prestamoRepository.query(
-        'SELECT * FROM PRESTAMO WHERE EST_PRES = 1',
-      );
+      return await this.prestamoRepository.find({
+        where: { estPres: 1 },
+      });
     } catch (error) {
       this.logger.error(error);
 
@@ -221,16 +219,16 @@ export class PrestamosService {
    */
   async findOne(id: number): Promise<PrestamoOrm> {
     try {
-      const result = await this.prestamoRepository.query(
-        'SELECT * FROM PRESTAMO WHERE ID_PRES = :1',
-        [id],
-      );
+      const resultList = await this.prestamoRepository.find({
+        where: { idPres: id },
+      });
+      const result = resultList.length > 0 ? resultList[0] : null;
 
-      if (result.length === 0) {
+      if (!result) {
         throw new NotFoundException(`Prestamo con ID ${id} no encontrado`);
       }
 
-      return result[0];
+      return result;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
@@ -238,7 +236,7 @@ export class PrestamosService {
 
       this.logger.error(error);
 
-      throw new BadRequestException('Error al buscar prestamo');
+      throw new BadRequestException('Error al buscar prestamo: ' + error.message);
     }
   }
 
@@ -437,15 +435,19 @@ export class PrestamosService {
           );
           */
 
-          const updated = await transactionalEntityManager.query(
-            'SELECT * FROM PRESTAMO WHERE ID_PRES = :1',
-            [id],
-          );
+          const updatedList = await transactionalEntityManager.find(PrestamoOrm, {
+            where: { idPres: id },
+          });
+          const updated = updatedList.length > 0 ? updatedList[0] : null;
 
-          return updated[0];
+          if (!updated) {
+            throw new NotFoundException(`Prestamo con ID ${id} no encontrado despues de actualizar`);
+          }
+
+          return updated;
         },
       );
-    } catch (error) {
+    } catch (error: any) {
       if (
         error instanceof NotFoundException ||
         error instanceof BadRequestException
@@ -453,6 +455,7 @@ export class PrestamosService {
         throw error;
       }
 
+      require('fs').writeFileSync('C:\\gestion_tecnologica_fisei\\backend\\debug_update.txt', error?.stack || String(error));
       this.logger.error(error);
 
       throw new BadRequestException('Error al actualizar prestamo');
@@ -640,14 +643,15 @@ export class PrestamosService {
         'SELECT * FROM DETALLE_PRESTAMO WHERE ID_PRES = :1',
         [prestamoId],
       );
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof NotFoundException) {
         throw error;
       }
 
+      require('fs').writeFileSync('C:\\gestion_tecnologica_fisei\\backend\\debug_detalles.txt', error?.stack || String(error));
       this.logger.error(error);
 
-      throw new BadRequestException('Error al obtener detalles del prestamo');
+      throw new BadRequestException('Error al obtener detalles del prestamo: ' + error.message);
     }
   }
 

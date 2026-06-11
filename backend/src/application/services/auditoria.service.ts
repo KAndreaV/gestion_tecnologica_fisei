@@ -26,9 +26,12 @@ export class AuditoriaService {
 
   async findAll(): Promise<AuditoriaOrm[]> {
     try {
-      return await this.auditoriaRepository.query(
-        'SELECT * FROM AUDITORIA ORDER BY FEC_AUD DESC, ID_AUD DESC',
-      );
+      return await this.auditoriaRepository.find({
+        order: {
+          fechaAud: 'DESC',
+          idAud: 'DESC',
+        },
+      });
     } catch (error) {
       this.logger.error(error);
 
@@ -38,16 +41,16 @@ export class AuditoriaService {
 
   async findOne(id: number): Promise<AuditoriaOrm> {
     try {
-      const result = await this.auditoriaRepository.query(
-        'SELECT * FROM AUDITORIA WHERE ID_AUD = :1',
-        [id],
-      );
+      const resultList = await this.auditoriaRepository.find({
+        where: { idAud: id },
+      });
+      const result = resultList.length > 0 ? resultList[0] : null;
 
-      if (result.length === 0) {
+      if (!result) {
         throw new NotFoundException(`Auditoria con ID ${id} no encontrada`);
       }
 
-      return result[0];
+      return result;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
@@ -94,21 +97,27 @@ export class AuditoriaService {
     );
 
     const nextId = result[0].ID;
+    const user = dto.nomUsuario || 'SISTEMA';
+    const affectedId = dto.idRegistro || null;
 
     await manager.query(
       `
       INSERT INTO AUDITORIA (
         ID_AUD,
-        TABLA_AFECTADA,
-        ACCION,
-        DESCRIPCION,
-        FECHA_AUD
+        NOM_TABLA,
+        NOM_ACCION,
+        DES_AUD,
+        FEC_AUD,
+        NOM_USUARIO,
+        ID_REGISTRO
       ) VALUES (
         :1,
         :2,
         :3,
         :4,
-        SYSDATE
+        SYSDATE,
+        :5,
+        :6
       )
       `,
       [
@@ -116,14 +125,20 @@ export class AuditoriaService {
         dto.tablaAfectada,
         dto.accion,
         dto.descripcion ?? null,
+        user,
+        affectedId,
       ],
     );
 
     return {
-      ID_AUD: nextId,
-      TABLA_AFECTADA: dto.tablaAfectada,
-      ACCION: dto.accion,
-      DESCRIPCION: dto.descripcion ?? null,
+      idAud: nextId,
+      tablaAfectada: dto.tablaAfectada,
+      accion: dto.accion,
+      descripcion: dto.descripcion ?? null,
+      fechaAud: new Date(),
+      nomUsuario: user,
+      idRegistro: affectedId,
     };
   }
 }
+

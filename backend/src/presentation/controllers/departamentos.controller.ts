@@ -9,12 +9,17 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { DepartamentosService } from '../../application/services/departamentos.service';
 import { CreateDepartamentoDto } from '../../application/dtos/create-departamento.dto';
 import { UpdateDepartamentoDto } from '../../application/dtos/update-departamento.dto';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { RolesGuard } from '../../auth/roles.guard';
+import { Roles } from '../../auth/roles.decorator';
 
 @Controller('departamentos')
+@UseGuards(JwtAuthGuard)
 export class DepartamentosController {
   constructor(private readonly departamentosService: DepartamentosService) {}
 
@@ -33,6 +38,8 @@ export class DepartamentosController {
   }
 
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createDto: CreateDepartamentoDto) {
     const data = await this.departamentosService.create(createDto);
@@ -40,6 +47,8 @@ export class DepartamentosController {
   }
 
   @Put(':id')
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
   @HttpCode(HttpStatus.OK)
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -50,9 +59,12 @@ export class DepartamentosController {
   }
 
   @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
   @HttpCode(HttpStatus.OK)
   async delete(@Param('id', ParseIntPipe) id: number) {
     await this.departamentosService.delete(id);
     return { success: true, message: 'Departamento eliminado correctamente' };
   }
 }
+

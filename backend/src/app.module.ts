@@ -10,15 +10,12 @@ import { MovimientosModule } from './presentation/modules/movimientos.module';
 import { AuditoriaModule } from './presentation/modules/auditoria.module';
 import { NotificacionesModule } from './presentation/modules/notificaciones.module';
 import { DatabaseModule } from './infrastructure/database/database.module';
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
 import { UsuariosModule } from './presentation/modules/usuarios.module';
 import { AuthModule } from './presentation/modules/auth.module';
-=======
-import { AuthModule } from './auth/auth.module';
->>>>>>> develop
->>>>>>> develop
+import { CategoriasModule } from './presentation/modules/categorias.module';
+import { UbicacionesModule } from './presentation/modules/ubicaciones.module';
+import { EstadosModule } from './presentation/modules/estados.module';
+import { DepartamentosModule } from './presentation/modules/departamentos.module';
 
 @Module({
   imports: [
@@ -29,19 +26,16 @@ import { AuthModule } from './auth/auth.module';
     DatabaseModule,
     AuthModule,
     ArticulosModule,
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
     UsuariosModule,
-    AuthModule,
-=======
     AuditoriaModule,
     NotificacionesModule,
     MovimientosModule,
     PrestamosModule,
     MantenimientosModule,
->>>>>>> develop
->>>>>>> develop
+    CategoriasModule,
+    UbicacionesModule,
+    EstadosModule,
+    DepartamentosModule,
   ],
   controllers: [AppController, TestController],
   providers: [AppService],
