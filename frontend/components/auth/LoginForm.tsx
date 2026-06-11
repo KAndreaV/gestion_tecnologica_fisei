@@ -6,14 +6,14 @@ import { Input } from "@/components/ui/Input";
 import { useLogin } from "@/features/auth/auth.hooks";
 
 export function LoginForm() {
-  const [email, setEmail] = useState("admin@empresa.com");
-  const [password, setPassword] = useState("12345678");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const { login, isLoading, error, clearError } = useLogin();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     try {
       await login({ email, password, rememberMe });
     } catch {
@@ -39,14 +39,21 @@ export function LoginForm() {
       <Input
         id="password"
         label="Contraseña"
-        type="password"
+        type={showPassword ? "text" : "password"}
         value={password}
         autoComplete="current-password"
         onChange={(event) => {
           clearError();
           setPassword(event.target.value);
         }}
-        suffix="👁"
+        suffix={
+          <span
+            style={{ cursor: "pointer", userSelect: "none" }}
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? "🙈" : "👁"}
+          </span>
+        }
       />
 
       <div className="row">
@@ -60,9 +67,7 @@ export function LoginForm() {
           Recordarme
         </label>
 
-        <a className="link" href="#">
-          Olvidé mi contraseña
-        </a>
+
       </div>
 
       {error ? <div className="auth-errors">{error}</div> : null}
@@ -70,9 +75,6 @@ export function LoginForm() {
       <div className="actions">
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Ingresando..." : "Entrar al sistema"}
-        </Button>
-        <Button type="button" variant="secondary">
-          Acceso con Microsoft
         </Button>
       </div>
 

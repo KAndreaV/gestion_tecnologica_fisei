@@ -9,12 +9,17 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { EstadosService } from '../../application/services/estados.service';
 import { CreateEstadoDto } from '../../application/dtos/create-estado.dto';
 import { UpdateEstadoDto } from '../../application/dtos/update-estado.dto';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { RolesGuard } from '../../auth/roles.guard';
+import { Roles } from '../../auth/roles.decorator';
 
 @Controller('estados')
+@UseGuards(JwtAuthGuard)
 export class EstadosController {
   constructor(private readonly estadosService: EstadosService) {}
 
@@ -33,6 +38,8 @@ export class EstadosController {
   }
 
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createDto: CreateEstadoDto) {
     const data = await this.estadosService.create(createDto);
@@ -40,6 +47,8 @@ export class EstadosController {
   }
 
   @Put(':id')
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
   @HttpCode(HttpStatus.OK)
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -50,9 +59,12 @@ export class EstadosController {
   }
 
   @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
   @HttpCode(HttpStatus.OK)
   async delete(@Param('id', ParseIntPipe) id: number) {
     await this.estadosService.delete(id);
     return { success: true, message: 'Estado eliminado correctamente' };
   }
 }
+

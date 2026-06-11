@@ -9,12 +9,17 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateMantenimientoDto } from '../../application/dtos/create-mantenimiento.dto';
 import { UpdateMantenimientoDto } from '../../application/dtos/update-mantenimiento.dto';
 import { MantenimientosService } from '../../application/services/mantenimientos.service';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { RolesGuard } from '../../auth/roles.guard';
+import { Roles } from '../../auth/roles.decorator';
 
 @Controller('mantenimientos')
+@UseGuards(JwtAuthGuard)
 export class MantenimientosController {
   constructor(
     private readonly mantenimientosService: MantenimientosService,
@@ -53,6 +58,8 @@ export class MantenimientosController {
   // POST
   // =========================================
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles(1, 4) // Administradores y Técnicos
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createDto: CreateMantenimientoDto) {
     const data = await this.mantenimientosService.create(createDto);
@@ -68,6 +75,8 @@ export class MantenimientosController {
   // PUT
   // =========================================
   @Put(':id')
+  @UseGuards(RolesGuard)
+  @Roles(1, 4) // Administradores y Técnicos
   @HttpCode(HttpStatus.OK)
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -86,6 +95,8 @@ export class MantenimientosController {
   // DELETE
   // =========================================
   @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(1, 4) // Administradores y Técnicos
   @HttpCode(HttpStatus.OK)
   async delete(@Param('id', ParseIntPipe) id: number) {
     await this.mantenimientosService.delete(id);
@@ -96,3 +107,4 @@ export class MantenimientosController {
     };
   }
 }
+

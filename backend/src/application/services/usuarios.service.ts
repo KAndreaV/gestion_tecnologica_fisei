@@ -24,10 +24,10 @@ export class UsuariosService {
   }
 
   async findAll(): Promise<Omit<UsuarioOrm, 'passHash'>[]> {
-    this.logger.debug('Buscando todos los usuarios activos');
+    this.logger.debug('Buscando todos los usuarios (activos e inactivos)');
     try {
       const data = await this.usuarioRepository.query(
-        'SELECT * FROM USUARIO WHERE EST_USR = 1',
+        'SELECT * FROM USUARIO ORDER BY EST_USR DESC, ID_USR ASC',
       );
       
       return data.map((user: any) => {
@@ -83,9 +83,9 @@ export class UsuariosService {
       usuario.idRol = rawUser.ID_ROL;
       usuario.estUsr = rawUser.EST_USR;
       return usuario;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(error);
-      throw new BadRequestException('Error al buscar usuario por login o email');
+      throw new BadRequestException(`Error al buscar usuario por login o email: ${error.message || error}`);
     }
   }
 
@@ -121,24 +121,38 @@ export class UsuariosService {
       const salt = await bcrypt.genSalt();
       const passHash = await bcrypt.hash(createDto.password, salt);
 
-      const usuario = this.usuarioRepository.create({
-        idUsr: nextId,
-        nomUsr: createDto.nomUsr,
-        apeUsr: createDto.apeUsr,
-        corUsr: createDto.corUsr,
-        telUsr: createDto.telUsr,
-        usuLogin: createDto.usuLogin,
-        passHash,
-        estUsr: 1,
-        idRol: createDto.idRol,
-        idDep: createDto.idDep,
-        idUbi: createDto.idUbi,
-        fecRegistro: new Date(),
-      });
+      await this.usuarioRepository.query(
+        `INSERT INTO USUARIO (
+          ID_USR,
+          NOM_USR,
+          APE_USR,
+          COR_USR,
+          TEL_USR,
+          USU_LOGIN,
+          PASS_HASH,
+          EST_USR,
+          ID_ROL,
+          ID_DEP,
+          ID_UBI,
+          FEC_REGISTRO
+        ) VALUES (
+          :1, :2, :3, :4, :5, :6, :7, 1, :8, :9, :10, SYSDATE
+        )`,
+        [
+          nextId,
+          createDto.nomUsr,
+          createDto.apeUsr,
+          createDto.corUsr,
+          createDto.telUsr ?? null,
+          createDto.usuLogin,
+          passHash,
+          createDto.idRol,
+          createDto.idDep ?? null,
+          createDto.idUbi ?? null,
+        ],
+      );
 
-      const savedUser = await this.usuarioRepository.save(usuario);
-      const { passHash: _, ...result } = savedUser;
-      return result;
+      return await this.findOne(nextId);
 
     } catch (error) {
       if (error instanceof ConflictException) {

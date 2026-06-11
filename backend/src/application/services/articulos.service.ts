@@ -136,47 +136,55 @@ export class ArticulosService {
   async update(id: number, updateDto: UpdateArticuloDto): Promise<ArticuloOrm> {
     try {
       const current: any = await this.findOne(id);
-      const idCat = updateDto.idCat ?? current.idCat;
-      const idEst = updateDto.idEst ?? current.idEst;
-      const serArt = updateDto.serArt ?? current.serArt;
+      
+      const nomArt = updateDto.nomArt !== undefined ? updateDto.nomArt : current.NOM_ART;
+      const desArt = updateDto.desArt !== undefined ? updateDto.desArt : current.DES_ART;
+      const serArt = updateDto.serArt !== undefined ? updateDto.serArt : current.SER_ART;
+      const marArt = updateDto.marArt !== undefined ? updateDto.marArt : current.MAR_ART;
+      const modArt = updateDto.modArt !== undefined ? updateDto.modArt : current.MOD_ART;
+      const canArt = updateDto.canArt !== undefined ? updateDto.canArt : current.CAN_ART;
+      const valArt = updateDto.valArt !== undefined ? updateDto.valArt : current.VAL_ART;
+      const idCat  = updateDto.idCat  !== undefined ? updateDto.idCat  : current.ID_CAT;
+      const idEst  = updateDto.idEst  !== undefined ? updateDto.idEst  : current.ID_EST;
+      const idDep  = updateDto.idDep  !== undefined ? updateDto.idDep  : current.ID_DEP;
+      const idUbi  = updateDto.idUbi  !== undefined ? updateDto.idUbi  : current.ID_UBI;
 
       await this.validateCategoriaExists(idCat);
       await this.validateEstadoArticulo(idEst);
       await this.validateUniqueSerie(serArt, id);
 
-    await this.articuloRepository.query(
-      `
-      UPDATE ARTICULO
-      SET
-        NOM_ART = :1,
-        DES_ART = :2,
-        SER_ART = :3,
-        MAR_ART = :4,
-        MOD_ART = :5,
-        CAN_ART = :6,
-        VAL_ART = :7,
-        ID_CAT = :8,
-        ID_EST = :9,
-        ID_DEP = :10,
-        ID_UBI = :11,
-        FEC_ACTUALIZACION = SYSDATE
-      WHERE ID_ART = :12
-      `,
-      [
-        updateDto.nomArt,
-        updateDto.desArt,
-        updateDto.serArt,
-        updateDto.marArt,
-        updateDto.modArt,
-        updateDto.canArt,
-        updateDto.valArt,
-        updateDto.idCat,
-        updateDto.idEst,
-        updateDto.idDep,
-        updateDto.idUbi,
-        id,
-      ],
-    );
+      await this.articuloRepository.query(
+        `
+        UPDATE ARTICULO
+        SET
+          NOM_ART = :1,
+          DES_ART = :2,
+          SER_ART = :3,
+          MAR_ART = :4,
+          MOD_ART = :5,
+          CAN_ART = :6,
+          VAL_ART = :7,
+          ID_CAT = :8,
+          ID_EST = :9,
+          ID_DEP = :10,
+          ID_UBI = :11
+        WHERE ID_ART = :12
+        `,
+        [
+          nomArt ?? null,
+          desArt ?? null,
+          serArt ?? null,
+          marArt ?? null,
+          modArt ?? null,
+          canArt,
+          valArt,
+          idCat,
+          idEst,
+          idDep ?? null,
+          idUbi ?? null,
+          id,
+        ],
+      );
 
       return await this.findOne(id);
     } catch (error) {

@@ -13,4 +13,15 @@ export class CreateAuditoriaDto {
   @IsString()
   @MaxLength(1000)
   descripcion?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  idRegistro?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  nomUsuario?: string;
 }
+

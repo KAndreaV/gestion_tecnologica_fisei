@@ -9,12 +9,17 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { CategoriasService } from '../../application/services/categorias.service';
 import { CreateCategoriaDto } from '../../application/dtos/create-categoria.dto';
 import { UpdateCategoriaDto } from '../../application/dtos/update-categoria.dto';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { RolesGuard } from '../../auth/roles.guard';
+import { Roles } from '../../auth/roles.decorator';
 
 @Controller('categorias')
+@UseGuards(JwtAuthGuard)
 export class CategoriasController {
   constructor(private readonly categoriasService: CategoriasService) {}
 
@@ -33,6 +38,8 @@ export class CategoriasController {
   }
 
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createDto: CreateCategoriaDto) {
     const data = await this.categoriasService.create(createDto);
@@ -40,6 +47,8 @@ export class CategoriasController {
   }
 
   @Put(':id')
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
   @HttpCode(HttpStatus.OK)
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -50,9 +59,12 @@ export class CategoriasController {
   }
 
   @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
   @HttpCode(HttpStatus.OK)
   async delete(@Param('id', ParseIntPipe) id: number) {
     await this.categoriasService.delete(id);
     return { success: true, message: 'Categoría eliminada correctamente' };
   }
 }
+

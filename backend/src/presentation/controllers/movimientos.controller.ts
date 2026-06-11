@@ -7,11 +7,16 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateMovimientoDto } from '../../application/dtos/create-movimiento.dto';
 import { MovimientosService } from '../../application/services/movimientos.service';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { RolesGuard } from '../../auth/roles.guard';
+import { Roles } from '../../auth/roles.decorator';
 
 @Controller('movimientos')
+@UseGuards(JwtAuthGuard)
 export class MovimientosController {
   constructor(private readonly movimientosService: MovimientosService) {}
 
@@ -39,6 +44,8 @@ export class MovimientosController {
   }
 
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles(1) // Sólo Administradores
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createDto: CreateMovimientoDto) {
     const data = await this.movimientosService.create(createDto);
@@ -50,3 +57,4 @@ export class MovimientosController {
     };
   }
 }
+
